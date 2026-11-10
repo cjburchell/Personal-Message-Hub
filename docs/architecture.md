@@ -48,7 +48,7 @@ Coverage distinguishes imports, never-successful/unrecorded sources, stale times
 6. Authentication/authorization, rate limits and safe request logging must precede any future external MCP/web listener. Do not expose public endpoints as part of these milestones.
 7. Retention, secure deletion, backup/export controls, action-management UI and exact mailbox mirroring remain incomplete. Reports and proposed findings require human review.
 
-Official LinkedIn/Messenger export adapters remain a future milestone.
+PMH-005 adds CLI-only LinkedIn/Messenger export adapters with separate snapshot provenance; see [export setup](export-imports.md).
 
 ## PMH-004 local interfaces
 
@@ -61,3 +61,13 @@ MCP is a separate official-SDK stdio host with six read tools: search_messages, 
 Web is a separate ASP.NET Core host on 127.0.0.1:5080 (port configurable), independent of provider credential stores. A dedicated private directory holds a versioned salted PBKDF2-SHA512 hash; setup uses a hidden prompt. The app refuses startup without a configured hash. Thirty-minute non-sliding HttpOnly/Strict cookies use ephemeral data-protection keys, so restart invalidates sessions. All private routes require authentication; login and POST requests require same-origin JSON and antiforgery tokens. Exact Host/Origin checks, non-loopback rejection, rate/body/read-deadline limits, no-store/CSP headers and safe route/status logs precede archive access. Environment/launch-profile URL declarations do not widen binding. This is not a reverse-proxy/public hosting design.
 
 The static UI renders all archive/model/report data as text, keeps no persistent browser history and clears displayed content on logout/expiry. It cannot modify provider data or run tools. Retention, action management, public/multiuser hosting and account/role administration remain deferred. Reports/caches/messages are still unencrypted SQLite data protected by operator filesystem/disk controls. See [local interface setup](local-interfaces.md) for configuration, MCP client privacy and test/real-model validation limits.
+
+## PMH-005 export ingestion
+
+IMessageExportReader is a provider-independent async stream with a completion summary. LinkedIn CSV and Messenger conversation JSON readers in Connectors/ExportReaders use bounded read-only file/directory/ZIP input. They never extract archives, open attachment URIs, contact providers or guess missing schemas. Owner aliases and a stable account label scope direction/source identity; timestamps are explicit or require an operator-selected timezone. UTF-8 Messenger text is preserved unless the operator opts into strict best-effort encoding repair.
+
+Native message IDs combine with conversation identity; fallback hashes include content/sender/time and occurrence suffixes. Replay/reordering stays idempotent, while edited content or overlapping/partial inputs have explicit limits. Media-only messages use neutral placeholders; unsent/known system/empty records are counted as skipped. No historical deletion reconciliation is attempted.
+
+A new additive export_imports table holds typed counts, a metadata fingerprint, accepted message-date range and local import time, with no raw filenames/owner aliases. A real import holds the sync lock and one SQLite transaction across local parsing/upserts, then commits provenance and FTS together. Failure or cancellation rolls back the entire run. Dry-run iteration bypasses database initialization/locks/connections completely. No network or AI work occurs during ingestion.
+
+SourceStatus optionally carries latest export provenance while LastSuccessfulSync/cursor remain unchanged. Reports/query warnings/web/CLI/MCP distinguish snapshot import time, skipped records and unavailable media from current provider coverage. Neither import time nor the newest accepted message is a completeness watermark. Existing saved reports remain immutable. Public hosting, provider-auth automation, import HTTP/MCP tools, retention/deletion controls and action-management UI remain out of scope. See [export formats and limits](export-imports.md).

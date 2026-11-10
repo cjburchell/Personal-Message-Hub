@@ -128,6 +128,14 @@ public sealed partial class SqliteMessageStore(string databasePath)
               input_hash TEXT PRIMARY KEY,
               analysis_json TEXT NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS export_imports (
+              id TEXT PRIMARY KEY,
+              source TEXT NOT NULL,
+              provider TEXT NOT NULL,
+              imported_at TEXT NOT NULL,
+              summary_json TEXT NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS idx_export_import_source ON export_imports(source,imported_at);
             """;
         await cmd.ExecuteNonQueryAsync(ct);
     }
@@ -265,6 +273,12 @@ public sealed partial class SqliteMessageStore(string databasePath)
         while (await reader.ReadAsync(ct))
             result.Add(new SourceStatus(reader.GetString(0), reader.IsDBNull(1) ? null :
                 DateTimeOffset.Parse(reader.GetString(1)), reader.IsDBNull(2) ? null : reader.GetString(2)));
-        return result;
+        foreach (var import in await GetLatestExportImportsAsync(ct))
+        {
+            var index = result.FindIndex(x => x.Source == import.Source);
+            if (index >= 0) result[index] = result[index] with { LastExportImport = import };
+            else result.Add(new(import.Source, null, null, import));
+        }
+        return result.OrderBy(x => x.Source, StringComparer.Ordinal).ToArray();
     }
 }

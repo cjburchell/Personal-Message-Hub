@@ -1,0 +1,4 @@
+CONVERSATION ID,CONVERSATION TITLE,FROM,SENDER PROFILE URL,TO,RECIPIENT PROFILE URLS,DATE,SUBJECT,CONTENT,FOLDER
+synthetic-thread-1,Project follow-up,Friend Example,https://www.linkedin.com/in/friend-example,Owner Example,https://www.linkedin.com/in/owner-example,2026-11-08 13:00:00 UTC,Availability,"Could you share availability for ""Tuesday"", please?",INBOX
+synthetic-thread-1,Project follow-up,Owner Example,https://www.linkedin.com/in/owner-example,Friend Example,https://www.linkedin.com/in/friend-example,2026-11-09 13:00:00 UTC,,Tuesday afternoon works.,SENT
+synthetic-thread-2,Deadline reminder,Library Example,https://www.linkedin.com/in/library-example,Owner Example,https://www.linkedin.com/in/owner-example,2026-11-08 14:00:00 UTC,Book reminder,Your book is due 2026-11-13.,INBOX

@@ -1,0 +1,36 @@
+{
+    "participants":  [
+                         {
+                             "name":  "Owner Example"
+                         },
+                         {
+                             "name":  "Friend Example"
+                         }
+                     ],
+    "title":  "Synthetic planning conversation",
+    "messages":  [
+                     {
+                         "timestamp_ms":  1794142800000,
+                         "content":  "Please confirm availability. The response deadline is 2026-11-13.",
+                         "sender_name":  "Friend Example",
+                         "type":  "Generic"
+                     },
+                     {
+                         "timestamp_ms":  1794229200000,
+                         "content":  "Tuesday afternoon works.",
+                         "sender_name":  "Owner Example",
+                         "type":  "Generic"
+                     },
+                     {
+                         "timestamp_ms":  1794232800000,
+                         "sender_name":  "Friend Example",
+                         "photos":  [
+                                        {
+                                            "uri":  "media/synthetic-photo.jpg"
+                                        }
+                                    ],
+                         "type":  "Generic"
+                     }
+                 ],
+    "thread_path":  "inbox/friend_example_12345"
+}
