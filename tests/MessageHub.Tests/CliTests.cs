@@ -23,6 +23,9 @@ public sealed class CliTests
                 info.ArgumentList.Add(cli);
                 foreach (var argument in arguments) info.ArgumentList.Add(argument);
                 info.Environment["MESSAGEHUB_DB"] = Path.Combine(directory, "test.db");
+                info.Environment.Remove("MESSAGEHUB_REPORT_TIMEZONE");
+                info.Environment.Remove("MESSAGEHUB_OLLAMA_MODEL");
+                info.Environment.Remove("MESSAGEHUB_OLLAMA_ENDPOINT");
                 using var process = Process.Start(info)!;
                 var output = process.StandardOutput.ReadToEndAsync();
                 var error = process.StandardError.ReadToEndAsync();
@@ -59,6 +62,22 @@ public sealed class CliTests
             await File.WriteAllTextAsync(invalid, "null");
             Assert.Equal(1, (await Run("import-json", invalid)).Code);
             Assert.Contains("Total: 0;", (await Run("report", "1")).Output);
+            var saved = await Run("report", "7", "--end", "2026-11-10T13:00:00Z");
+            Assert.Equal(0, saved.Code);
+            var reportId = saved.Output.Split('\n').Select(x => x.Trim()).Single(x => x.StartsWith("Saved report: "))["Saved report: ".Length..];
+            Assert.Contains(reportId, (await Run("reports")).Output);
+            Assert.Contains("Source coverage and freshness", (await Run("report-show", reportId)).Output);
+            Assert.Contains("your availability", (await Run("message", "demo:001")).Output);
+            var weekly = await Run("worker", "--once", "--timezone", "UTC");
+            Assert.Equal(0, weekly.Code);
+            Assert.Contains("Saved report: weekly-", weekly.Output);
+            Assert.Contains("already exists", (await Run("worker", "--once", "--timezone", "UTC")).Output);
+            Assert.Equal(0, (await Run("REPORT", "7", "--end", "2026-11-10T13:00:00Z")).Code);
+            Assert.Equal(1, (await Run("report", "--ai")).Code);
+            Assert.Equal(1, (await Run("report", "--end", "2026-11-10")).Code);
+            Assert.Equal(1, (await Run("worker", "--once", "--hour", "25")).Code);
+            Assert.Equal(1, (await Run("worker", "--once", "--timezone", "unknown-zone")).Code);
+            Assert.Equal(1, (await Run("report-show", "missing")).Code);
         }
         finally { Directory.Delete(directory, recursive: true); }
     }

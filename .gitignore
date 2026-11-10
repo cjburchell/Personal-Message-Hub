@@ -14,7 +14,7 @@ data/
 *.sqlite3
 secrets/
 exports/
-reports/private/
+reports/
 **/appsettings.Development.json
 *.sqlite-shm
 *.sqlite-wal
@@ -26,5 +26,6 @@ reports/private/
 *.secret
 *.secret.*
 *.sync.lock
+*.report.lock
 client_secret*.json
 credentials*.json
