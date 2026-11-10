@@ -1,6 +1,6 @@
-# Personal Message Hub - PMH-003
+# Personal Message Hub - PMH-004
 
-Self-hosted, read-only .NET 10 foundation for a personal communication archive. The application supports read-only Gmail OAuth/API and Yahoo TLS IMAP synchronization, normalized JSON/demo imports, SQLite FTS5 search and deterministic count reports. PMH-003 adds persisted reports, a weekly worker and optional bounded local Ollama analysis. A web interface and MCP server remain future work.
+Self-hosted, read-only .NET 10 foundation for a personal communication archive. The application supports read-only Gmail OAuth/API and Yahoo TLS IMAP synchronization, normalized JSON/demo imports, SQLite FTS5 search and deterministic count reports. PMH-003 adds persisted reports, a weekly worker and optional bounded local Ollama analysis. PMH-004 adds authenticated loopback web chat and a read-only stdio MCP server.
 
 ## Windows development
 
@@ -40,7 +40,7 @@ Without `MESSAGEHUB_DB`, the Windows default is `%LOCALAPPDATA%\PersonalMessageH
 
 SQLite message bodies are unencrypted. Before any future personal-data ingestion, use full-disk encryption and restrictive filesystem permissions. Live integrations use Windows DPAPI for credentials. Retention tooling and database encryption remain future work. Never commit credentials, tokens, exports, databases, backups or private reports. Tests use synthetic `.test` addresses and isolated temporary databases; the existing `data/` directory is ignored and is not a test fixture.
 
-Gmail authorization temporarily starts a loopback OAuth callback; no permanent external listener or paid service is used. See [Gmail/Yahoo local setup](docs/mail-setup.md) for consent, hidden app-password entry, sync commands, privacy prerequisites and limitations. Live connectors currently require Windows. See [weekly reporting setup](docs/reporting.md) for local Ollama, privacy budgets, scheduling and report retrieval. LinkedIn/Messenger export adapters and natural-language questions through MCP/web chat remain future milestones.
+Gmail authorization temporarily starts a loopback OAuth callback. The optional password-protected web app binds to 127.0.0.1; MCP uses stdio. No paid service is used. See [Gmail/Yahoo local setup](docs/mail-setup.md) for consent, hidden app-password entry, sync commands, privacy prerequisites and limitations. Live connectors currently require Windows. See [weekly reporting setup](docs/reporting.md) for local Ollama, privacy budgets, scheduling and report retrieval. See [local chat/MCP setup](docs/local-interfaces.md) for authenticated archive questions and read-only tools. LinkedIn/Messenger export adapters remain a future milestone.
 
 ## Layout and roadmap
 
@@ -48,13 +48,16 @@ Gmail authorization temporarily starts a loopback OAuth callback; no permanent e
 - `src/MessageHub.Storage`: SQLite schema, atomic imports, deduplication, FTS5 and source status.
 - `src/MessageHub.Connectors`: Google API/OAuth, MailKit IMAP, MIME normalization and Windows DPAPI secrets.
 - `src/MessageHub.Reporting`: report orchestration/rendering, bounded Ollama adapter and weekly job.
+- `src/MessageHub.Query`: bounded archive retrieval and optional cited local Q&A.
+- `src/MessageHub.Mcp`: read-only stdio MCP tools.
+- `src/MessageHub.Web`: password-protected loopback web UI/API.
 - `src/MessageHub.Cli`: local commands, authorization, sync, report retrieval and worker loop.
 - `tests/MessageHub.Tests`: synthetic storage/provider/CLI/report tests with fake HTTP and IMAP.
 
 1. PMH-001: foundation validation (completed).
 2. PMH-002: Gmail/Yahoo read-only integrations, incremental sync and credential management (implemented; synthetic validation).
-3. PMH-003: weekly worker and selective local AI reports with citations/freshness warnings (current; real-model validation pending).
-4. PMH-004: MCP server and authenticated local chat.
+3. PMH-003: weekly worker and selective local AI reports with citations/freshness warnings (implemented; real-model validation pending).
+4. PMH-004: read-only stdio MCP server and authenticated local chat (current).
 5. PMH-005: official LinkedIn/Messenger export adapters.
 
 See [architecture](docs/architecture.md) and [development conventions](AGENTS.md).
@@ -72,3 +75,16 @@ dotnet run --project src/MessageHub.Cli -- report 7 --ai --model '<installed-loc
 ```
 
 The worker checks the latest due weekly interval at startup and every minute, saves one report per scheduled UTC end, and catches up only the latest missed window. Add `--sync` to explicitly synchronize locally authorized Gmail/Yahoo accounts before a due report. Add `--once` to run a single due check. No task/service, model download or paid integration is installed automatically. Reports and analysis caches contain private data and remain in unencrypted SQLite storage. See [reporting details](docs/reporting.md) for limits and optional Windows Task Scheduler setup.
+
+## Local chat and MCP
+
+```powershell
+# One-time local web password setup (hidden interactive prompt):
+dotnet run --project src/MessageHub.Web -- --set-password
+dotnet run --project src/MessageHub.Web
+# Open http://127.0.0.1:5080/ and use your local web password.
+# Publish the separate stdio server for your chosen MCP client:
+dotnet publish src/MessageHub.Mcp -c Release -o "$env:LOCALAPPDATA\PersonalMessageHub\mcp"
+```
+
+Both interfaces use MESSAGEHUB_DB and return bounded evidence with source-coverage warnings. Optional Q&A uses a configured local Ollama model only when explicitly requested. The web app uses password/session authentication, CSRF checks and loopback/Origin/Host restrictions. The MCP process exposes six read tools and no network listener. Read [interface setup and privacy limits](docs/local-interfaces.md) before connecting a client: a client receiving private tool results may forward them to its own model provider. No external client, model or system task is configured automatically.

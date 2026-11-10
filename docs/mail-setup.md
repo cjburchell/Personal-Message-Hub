@@ -8,7 +8,7 @@ Live integrations currently require Windows. Credentials and Gmail OAuth client 
 
 SQLite remains unencrypted. Enable full-disk encryption (for example, BitLocker), restrict access to your Windows profile and database directory, and keep the database, WAL/SHM files and backups outside shared/synced folders before importing personal messages. Configure `MESSAGEHUB_DB` if needed; otherwise the default is `%LOCALAPPDATA%\PersonalMessageHub\messages.db`. The application does not verify disk-encryption state or ACLs for you.
 
-Run from the repository root after the normal restore/build steps. No AI or paid service is required. No permanent listener is started.
+Run from the repository root after the normal restore/build steps. No AI or paid service is required. These mail commands start no permanent listener; the optional [local web app](local-interfaces.md) is a separate process.
 
 ## Gmail
 
