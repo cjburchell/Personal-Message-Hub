@@ -10,8 +10,10 @@ var store = new SqliteMessageStore(dbPath);
 var command = args.FirstOrDefault()?.ToLowerInvariant();
 if (command is null || command is "help" or "--help")
 {
-    Console.WriteLine("Personal Message Hub (PMH-002)");
-    Console.WriteLine("Commands: init | import-demo | import-json <file> | search <phrase> | report [days] | status");
+    Console.WriteLine("Personal Message Hub (PMH-003)");
+    Console.WriteLine("Commands: init | import-demo | import-json <file> | search <phrase> | report [days] [--end <ISO>] [--ai --model <local-model>] | reports | report-show <id> | status");
+    Console.WriteLine("Worker: worker [--once] [--sync] [--ai --model <local-model>] [--timezone <zone>] [--day Monday] [--hour 8]");
+    Console.WriteLine("Evidence: message <id> (prints the full archived message locally)");
     Console.WriteLine("Database: " + dbPath);
     Console.WriteLine("Mail: auth gmail <desktop-client.json> | auth yahoo <address> | sync <gmail|yahoo> | forget <gmail|yahoo>");
     Console.WriteLine("Live sync requires Windows, disk encryption and restricted filesystem access; messages are unencrypted in SQLite.");
@@ -19,7 +21,9 @@ if (command is null || command is "help" or "--help")
 }
 try
 {
-    using var cancellation = new CancellationTokenSource(TimeSpan.FromMinutes(10));
+    args[0] = command;
+    using var cancellation = new CancellationTokenSource();
+    if (command != "worker") cancellation.CancelAfter(TimeSpan.FromMinutes(10));
     Console.CancelKeyPress += (_, e) => { e.Cancel = true; cancellation.Cancel(); };
     await store.InitializeAsync(cancellation.Token);
     switch (command)
@@ -60,22 +64,27 @@ try
         case "search":
             if (args.Length < 2) throw new ArgumentException("Usage: search <phrase>");
             foreach (var hit in await store.SearchAsync(string.Join(' ', args.Skip(1))))
-                Console.WriteLine($"[{hit.Source}] {hit.SentAt:u} {hit.Sender}: {hit.Subject} (id: {hit.Id})");
+                Console.WriteLine(TerminalText($"[{hit.Source}] {hit.SentAt:u} {hit.Sender}: {hit.Subject} (id: {hit.Id})"));
             break;
         case "report":
-            var days = 7;
-            if (args.Length > 2 || (args.Length == 2 && !int.TryParse(args[1], out days)) || days is < 1 or > 365)
-                throw new ArgumentException("Usage: report [days], where days is an integer from 1 to 365.");
-            var end = DateTimeOffset.UtcNow;
-            var start = end.AddDays(-days);
-            var messages = await store.BetweenAsync(start, end);
-            var summary = ReportSummaryBuilder.Build(messages);
-            Console.WriteLine($"# Message report: {start:yyyy-MM-dd} to {end:yyyy-MM-dd} (UTC)");
-            Console.WriteLine($"Total: {summary.MessageCount}; incoming: {summary.IncomingCount}; outgoing: {summary.OutgoingCount}");
-            foreach (var source in summary.BySource.OrderBy(x => x.Key))
-                Console.WriteLine($"- {source.Key}: {source.Value}");
-            Console.WriteLine("Note: deterministic counts only; AI analysis and action resolution are not implemented.");
-            Console.WriteLine("Counts cover the local archive only. Use status to check source freshness and failed syncs.");
+        case "worker":
+            await ReportCommands.RunAsync(args, store, cancellation.Token);
+            break;
+        case "reports":
+            if (args.Length != 1) throw new ArgumentException("Usage: reports");
+            foreach (var report in await store.GetReportsAsync(cancellation.Token))
+                Console.WriteLine($"{report.Id} | {report.Start:u} to {report.End:u} | created {report.CreatedAt:u}");
+            break;
+        case "report-show":
+            if (args.Length != 2) throw new ArgumentException("Usage: report-show <id>");
+            var savedReport = await store.GetReportAsync(args[1], cancellation.Token) ?? throw new ArgumentException("Report not found.");
+            Console.WriteLine(savedReport.Markdown);
+            break;
+        case "message":
+            if (args.Length != 2) throw new ArgumentException("Usage: message <id>");
+            var evidence = await store.GetMessageAsync(args[1], cancellation.Token) ?? throw new ArgumentException("Message not found.");
+            Console.WriteLine(TerminalText($"{evidence.Id} | {evidence.Source} | {evidence.SentAt:u} | {evidence.Sender} | {evidence.Subject}"));
+            Console.WriteLine(TerminalText(evidence.Body));
             break;
         case "status":
             var statuses = await store.GetStatusesAsync();
@@ -87,6 +96,7 @@ try
             throw new ArgumentException($"Unknown command: {command}");
     }
 }
+
 catch (Exception ex)
 {
     // Do not echo JSON or database values: they may contain private message content.
@@ -104,3 +114,5 @@ catch (Exception ex)
     Console.Error.WriteLine("Command failed. " + reason + " See docs/mail-setup.md; use --help for usage.");
     Environment.ExitCode = 1;
 }
+
+static string TerminalText(string text) => new(text.Where(c => !char.IsControl(c) || c is '\n' or '\r' or '\t').ToArray());

@@ -10,5 +10,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\MessageHub.Connectors\MessageHub.Connectors.csproj" />
+    <ProjectReference Include="..\..\src\MessageHub.Reporting\MessageHub.Reporting.csproj" />
   </ItemGroup>
 </Project>

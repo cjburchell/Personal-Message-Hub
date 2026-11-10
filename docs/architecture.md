@@ -1,44 +1,51 @@
 # Architecture and trust boundaries
 
-## Scope
-PMH-001 implemented domain objects, a source interface, SQLite storage with FTS5 and a local CLI. PMH-002 adds explicit on-demand Gmail and Yahoo read-only integrations. Tests remain synthetic and never contact providers.
+## Current scope
 
-## Future processing flow
-Provider adapters (read only) â†’ normalization â†’ message store â†’ retrieval â†’ selective LLM summarization â†’ weekly report / MCP endpoint.
+PMH-001 established Core domain records, SQLite/FTS5 storage and a local CLI. PMH-002 added read-only Gmail/Yahoo integrations. PMH-003 adds persisted reports, bounded local AI analysis and weekly scheduling. Tests use synthetic data and in-memory/fake provider transports. No MCP endpoint, web interface, hosted AI or report-delivery channel exists.
 
-## Security requirements before live ingestion
-1. Implement OAuth for Gmail with minimal read-only scopes. Store refresh tokens using OS-native secret storage or a separately encrypted secret store; never write secrets to configuration files or logs.
-2. Implement Yahoo IMAP with TLS and supported app authentication. Do not use ordinary account passwords in configuration.
-3. Set filesystem permissions and encrypt storage at rest before loading sensitive messages; an unencrypted SQLite database is **not** a finished security boundary.
-4. Keep external messages as untrusted evidence. Strip markup and remote resources; avoid letting message content control prompts, tool invocations, or system configuration.
-5. Reports must cite message IDs, include source freshness and distinguish data not ingested from no new messages.
-6. Defer external access until authentication, authorization, rate limiting, and request logging are in place. Avoid opening MCP endpoints to the public internet without a compatible authenticated transport.
-7. Never push private content, tokens, exported archives, or backups to GitHub.
-8. Implement a retention policy, data deletion, backup, and export controls.
+Processing flow: read-only provider adapter -> normalization -> message store -> heuristic shortlist -> optional local analysis -> cited report.
 
-## PMH-002 acceptance criteria
-- Authorized Gmail read-only sync for last 30 days and incremental fetch
-- Yahoo IMAP TLS sync (if account supports app password)
-- At-least-once sync with idempotent message upsert
-- Accurate provider-specific sync checkpoints and freshness status
-- Deterministic tests and no real credentials in fixtures
+## Components
 
-## Foundation validation notes
+- **Core** has normalized messages, date-only and incremental connector interfaces, report contracts, deterministic counts, English heuristic selection and timezone-aware weekly boundaries. It has no provider, persistence or HTTP dependencies.
+- **Storage** depends on Core and Microsoft.Data.Sqlite. Schema initialization is additive and repeatable. Messages upsert by the case-sensitive source/message-ID pair. FTS5 external-content insert/update/delete triggers maintain the index. All SQL and literal-phrase FTS queries are parameterized. Times use UTC round-trip strings; report windows include start and exclude end.
+- **Connectors** depends on Core plus Google APIs, MailKit/MimeKit, HtmlAgilityPack and Windows DPAPI. Reader interfaces permit synthetic tests. MIME attachments are not persisted, HTML is converted to text without fetching resources, and there are no mailbox mutation methods in the application adapters.
+- **Reporting** depends on Core/Storage and standard HTTP libraries. It coordinates snapshots, bounded optional Ollama calls, validated cache reuse, escaped Markdown rendering and persisted reports/proposals. WeeklyReportJob implements the latest-due-window policy; CLI supplies the process loop and optional sync callback.
+- **CLI** composes these components. Local commands use MESSAGEHUB_DB or LocalApplicationData. Provider authorization is explicit; sync is noninteractive. A worker is an ordinary cancellable process, not an automatically installed Windows service.
 
-The solution includes Core, Storage, CLI and tests and targets .NET 10. JSON imports validate the normalized message fields before writing, then use one transaction so a failing batch cannot leave partial messages or FTS entries. Single-message upserts remain available. Source identity is case-sensitive; generated message IDs escape each component before joining with a colon to avoid separator collisions. Existing ordinary IDs remain unchanged.
+## Provider synchronization
 
-FTS5 uses external content with insert/update/delete triggers. Queries are parameterized literal phrases. Report windows use UTC with inclusive start and exclusive end. File imports never advance provider sync status; only demo imports write synthetic status. Tables for reports and action items reserve future schema but currently have no analysis workflow.
+IIncrementalMessageConnector streams message batches with an opaque completion cursor on the final batch. A per-database file lock serializes syncs without holding SQL transactions during network I/O. Each batch commits atomically. Only a fully completed stream advances its cursor/success timestamp and clears its error. Failure or cancellation preserves prior freshness, records a fixed safe error, and leaves earlier committed batches for idempotent replay. CLI credential operations have a separate cross-process lock.
 
-The test suite uses temporary synthetic archives and clears pooled SQLite connections before Windows cleanup. Never use the preexisting local data/messages.db for validation.
+Gmail requests gmail.readonly through desktop OAuth authorization-code PKCE, explicit offline consent and a temporary loopback callback. Windows DPAPI stores tokens/client configuration. Sync refreshes tokens without a browser. Initial sync captures history before a paginated 30-day scan; incremental scans paginate history changes. Expired history triggers another 30-day scan. Draft/spam/trash messages are excluded; previously archived copies remain.
 
-## PMH-002 implementation
+Yahoo uses fixed TLS IMAP with platform certificate validation and an app password. Inbox and Sent are opened with EXAMINE/read-only access, and bodies use BODY.PEEK. Per-folder UIDVALIDITY/UIDNEXT checkpoints bound each scan. Initial/reset scans cover 30 days; new UIDs drive incremental syncs. Provider deletions and flags are not mirrored. Folder copies/moves or UIDVALIDITY resets can create distinct archive copies.
 
-Core remains independent of providers and persistence. IIncrementalMessageConnector streams MessageBatch values with a provider-specific completion cursor on the final batch. Connectors contains official Google API/OAuth adapters, MailKit IMAP, MIME normalization and a Windows DPAPI IDataStore. Storage's SyncCoordinator orchestrates read-only adapters through Core contracts; CLI composes these components. The original date-only connector interface remains available for simple adapters.
+Sources use a hash of the normalized account address to isolate checkpoints/messages. Message IDs escape each source/ID component before joining with a colon. Yahoo IDs also include folder/UIDVALIDITY/UID. Hashes reduce address exposure in status but do not anonymize message contents. Normalized JSON imports never claim provider freshness. Demo status describes synthetic imports only. See [mail setup](mail-setup.md).
 
-The existing sync_state table already has cursor/error columns, so no destructive schema migration is needed. A per-database file lock serializes sync runs without holding SQLite transactions over network I/O. Each message batch is atomic; a complete run writes its final checkpoint, success timestamp and clears any error in one SQL statement. A failed run leaves prior success/checkpoint values intact and records a fixed non-sensitive error. Already committed batches replay via upserts. Cancellation follows the same rule. CLI credential operations are serialized separately to avoid concurrent refresh/setup writes.
+## Reports and scheduling
 
-Gmail uses gmail.readonly authorization-code PKCE with a temporary loopback callback. Sync refreshes encrypted tokens noninteractively. The initial 30-day scan captures a history ID before listing; incremental scans paginate history changes. Expired history falls back to a 30-day scan. Yahoo uses fixed TLS IMAP and read-only Inbox/Sent access, per-folder UIDVALIDITY/UIDNEXT checkpoints, and 30-day initial/reset scans. Source IDs include a hash of the normalized account address so account changes cannot reuse another account's checkpoint. Yahoo identities additionally include folder and UIDVALIDITY; moves/copies/resets can create distinct archive records.
+The existing reports and action_items tables now store immutable report Markdown and deterministic proposed actions. report_analysis_cache is a new additive table. Report/proposal writes share one transaction. Stable proposal IDs prevent duplicates; only proposed records refresh details, preserving reviewed states. AI findings remain advisory report text and never create executable tasks or mark anything complete.
 
-DPAPI protects secrets for the current Windows user; other platforms have no credential fallback. Message storage is still unencrypted, so the operator must secure the filesystem before live ingestion. MIME attachments are not persisted. HTML is reduced to text without fetching resources. Provider errors and protocol logs must not disclose content. Provider deletions are not propagated into the archive. Retention, cross-folder deduplication and exact mailbox mirroring are deferred.
+A cross-process report lock prevents concurrent generation. The service briefly acquires the sync lock while reading counts/evidence/status, then releases it before AI HTTP calls. It holds no database transaction across provider/model requests. Manual reports recompute counts/coverage and can reuse validated AI analysis across overlapping windows. Cache identity combines policy version, local model digest and exact bounded evidence. Scheduled IDs use the UTC interval end; restarting the worker reuses an existing report and does not repeat AI generation.
 
-See [local mail setup](mail-setup.md) for supported scope, account authorization, recovery and remaining limitations. No live-provider verification is part of the automated suite. Scheduling, AI reports, MCP and web hosting remain future work.
+The default weekly boundary is Monday 08:00 America/Toronto. Both local boundaries convert independently to UTC, preserving calendar weeks across DST. Skipped hours move to the first valid minute; repeated hours use their later occurrence. Startup and minute polling evaluate only the latest due interval, without backlog backfill. Optional --sync runs noninteractive provider syncs before a new due report. Failed provider syncs leave warnings in the report. No email or external delivery is performed.
+
+Counts include all archived messages in the interval. English heuristics flag possible requests, deadlines and importance. A later archived outgoing message suppresses a pending-reply flag within that source/conversation/window. Selection is capped at 20 candidates, 120 subject/500 body characters each and 12,000 serialized UTF-8 bytes, dropping lower-ranked evidence to fit. Reports disclose omissions and truncation. Explicit valid ISO dates remain date-only; relative deadlines and task resolution require review.
+
+Local Ollama is optional and must use a literal loopback endpoint. PMH disables HTTP proxies/redirects, checks installed model metadata and digest, rejects cloud tags/remote backing and verifies local model metadata before evidence submission. It requests structured output with thinking/streaming disabled, at most 1,200 output tokens and no tools. HTTP operations have two-minute deadlines and 64 KiB response caps. Untrusted evidence cannot set endpoints, credentials, prompts or configuration. Model findings require known categories and supplied message-ID citations; report rendering escapes active markup. Citations do not guarantee interpretation accuracy. Invalid/unavailable AI produces a labeled deterministic fallback; caller cancellation saves no partial report.
+
+Coverage distinguishes imports, never-successful/unrecorded sources, stale timestamps, synthetic data and failed syncs. Empty archives never imply empty inboxes. Historical report coverage cannot be proven from a current sync timestamp. The 24-hour staleness comparison is relative to report end. See [reporting setup and limitations](reporting.md).
+
+## Security requirements
+
+1. Gmail scopes remain read-only. Yahoo uses TLS/app authentication, not normal account passwords. Credentials stay in current-user Windows DPAPI; other operating systems have no plaintext fallback.
+2. SQLite bodies, reports, caches and proposals are unencrypted. Operators must use disk encryption, restrictive filesystem permissions and private backup locations before real ingestion. The app does not attest encryption or ACL state.
+3. Never commit credentials, tokens, exports, personal databases or private reports. Tests must not read developer credential stores, contact providers, or require a model server.
+4. Treat all external message/model content as untrusted evidence. Never execute embedded instructions or model tool calls. Do not log raw provider errors, prompts, bodies or protocol traffic.
+5. Local Ollama/server/model files are trusted operator software. Disable Ollama cloud features for local-only operation. No hosted AI or paid integration may be added without approval.
+6. Authentication/authorization, rate limits and safe request logging must precede any future external MCP/web listener. Do not expose public endpoints as part of these milestones.
+7. Retention, secure deletion, backup/export controls, action-management UI and exact mailbox mirroring remain incomplete. Reports and proposed findings require human review.
+
+PMH-004 (MCP and authenticated local chat) and official LinkedIn/Messenger export adapters remain future milestones.

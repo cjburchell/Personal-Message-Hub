@@ -4,7 +4,7 @@ using Microsoft.Data.Sqlite;
 
 namespace MessageHub.Storage;
 
-public sealed class SqliteMessageStore(string databasePath)
+public sealed partial class SqliteMessageStore(string databasePath)
 {
     private readonly string _connectionString = new SqliteConnectionStringBuilder
     {
@@ -124,6 +124,10 @@ public sealed class SqliteMessageStore(string databasePath)
               range_end TEXT NOT NULL,
               markdown TEXT NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS report_analysis_cache (
+              input_hash TEXT PRIMARY KEY,
+              analysis_json TEXT NOT NULL
+            );
             """;
         await cmd.ExecuteNonQueryAsync(ct);
     }
@@ -174,7 +178,7 @@ public sealed class SqliteMessageStore(string databasePath)
               body=excluded.body, sent_at=excluded.sent_at, is_outgoing=excluded.is_outgoing,
               original_url=excluded.original_url;
             """;
-        cmd.Parameters.AddWithValue("$id", $"{Uri.EscapeDataString(message.Source)}:{Uri.EscapeDataString(message.SourceMessageId)}");
+        cmd.Parameters.AddWithValue("$id", MessageIdentity.For(message));
         cmd.Parameters.AddWithValue("$source", message.Source);
         cmd.Parameters.AddWithValue("$sourceId", message.SourceMessageId);
         cmd.Parameters.AddWithValue("$thread", message.ConversationId);
