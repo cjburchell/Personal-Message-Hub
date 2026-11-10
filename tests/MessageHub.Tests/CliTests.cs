@@ -46,6 +46,10 @@ public sealed class CliTests
             Assert.Equal(1, (await Run("report", "invalid")).Code);
             Assert.Equal(1, (await Run("report", "0")).Code);
             Assert.Equal(1, (await Run("unknown")).Code);
+            Assert.Equal(1, (await Run("sync", "unsupported")).Code);
+            Assert.Equal(1, (await Run("sync", "gmail", "unexpected")).Code);
+            Assert.Equal(1, (await Run("auth", "gmail")).Code);
+            Assert.Equal(1, (await Run("forget", "unsupported")).Code);
             Assert.Equal(1, (await Run("import-json")).Code);
             var invalid = Path.Combine(directory, "invalid.json");
             await File.WriteAllTextAsync(invalid, "[{\"body\":\"synthetic-private-marker\"}]");

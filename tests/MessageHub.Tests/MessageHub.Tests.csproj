@@ -8,4 +8,7 @@
     <ProjectReference Include="../../src/MessageHub.Storage/MessageHub.Storage.csproj" />
     <ProjectReference Include="../../src/MessageHub.Cli/MessageHub.Cli.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\MessageHub.Connectors\MessageHub.Connectors.csproj" />
+  </ItemGroup>
 </Project>

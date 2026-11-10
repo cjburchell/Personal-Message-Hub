@@ -14,6 +14,53 @@ public sealed class SqliteMessageStore(string databasePath)
 
     private SqliteConnection Open() => new(_connectionString);
 
+    // Serialize syncs across processes without holding a SQLite transaction during network I/O.
+    public FileStream AcquireSyncLock() => new(
+        new SqliteConnectionStringBuilder(_connectionString).DataSource + ".sync.lock",
+        FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+
+    public async Task<SyncCheckpoint> GetCheckpointAsync(string source, CancellationToken ct = default)
+    {
+        await using var connection = Open();
+        await connection.OpenAsync(ct);
+        using var command = connection.CreateCommand();
+        command.CommandText = "SELECT cursor,last_successful_sync,last_error FROM sync_state WHERE source=$source";
+        command.Parameters.AddWithValue("$source", source);
+        await using var reader = await command.ExecuteReaderAsync(ct);
+        if (!await reader.ReadAsync(ct)) return new(null, null, null);
+        return new(reader.IsDBNull(0) ? null : reader.GetString(0),
+            reader.IsDBNull(1) ? null : DateTimeOffset.Parse(reader.GetString(1)),
+            reader.IsDBNull(2) ? null : reader.GetString(2));
+    }
+
+    public async Task CompleteSyncAsync(string source, string cursor, DateTimeOffset time, CancellationToken ct = default)
+    {
+        await using var connection = Open();
+        await connection.OpenAsync(ct);
+        using var command = connection.CreateCommand();
+        command.CommandText = """
+            INSERT INTO sync_state(source,cursor,last_successful_sync,last_error) VALUES($s,$c,$t,NULL)
+            ON CONFLICT(source) DO UPDATE SET cursor=$c,last_successful_sync=$t,last_error=NULL;
+            """;
+        command.Parameters.AddWithValue("$s", source);
+        command.Parameters.AddWithValue("$c", cursor);
+        command.Parameters.AddWithValue("$t", time.ToUniversalTime().ToString("O"));
+        await command.ExecuteNonQueryAsync(ct);
+    }
+
+    public async Task RecordSyncFailureAsync(string source, CancellationToken ct = default)
+    {
+        await using var connection = Open();
+        await connection.OpenAsync(ct);
+        using var command = connection.CreateCommand();
+        command.CommandText = """
+            INSERT INTO sync_state(source,last_error) VALUES($s,'Sync failed; retry or reauthorize locally.')
+            ON CONFLICT(source) DO UPDATE SET last_error=excluded.last_error;
+            """;
+        command.Parameters.AddWithValue("$s", source);
+        await command.ExecuteNonQueryAsync(ct);
+    }
+
     public async Task InitializeAsync(CancellationToken ct = default)
     {
         var dbPath = new SqliteConnectionStringBuilder(_connectionString).DataSource;
