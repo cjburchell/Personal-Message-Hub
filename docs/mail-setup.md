@@ -64,7 +64,7 @@ Ctrl+C cancels a run; mail operations have a ten-minute command timeout. Retry `
 
 ## Troubleshooting
 
-- Google 403: verify the API is enabled and account/organization consent policies allow access. Retry later for quota errors; do not broaden scopes.
+- Google 403: the CLI prints only recognized error codes and fixed guidance, never Google's raw messages/metadata. `accessNotConfigured`/`SERVICE_DISABLED` means check Gmail API enablement in the OAuth client's project; `insufficientPermissions`/`ACCESS_TOKEN_SCOPE_INSUFFICIENT` means reauthorize with Gmail read-only consent; `domainPolicy` requires administrator review; rate/quota codes require waiting or checking quotas. Unknown reasons remain redacted. Do not broaden scopes or share tokens/raw responses. Successful `auth gmail` also checks the Gmail profile; a later sync failure needs its specific reason rather than assuming authorization failed.
 - Google authorization or refresh failure: run `forget gmail`, then authorize again locally with your desktop client file.
 - Yahoo authentication failure: verify the full address, app-password availability and app password locally. Never substitute account passwords in code or files.
 - TLS failure: check Windows trust settings and system time. Do not disable certificate validation.
