@@ -122,7 +122,7 @@ catch (Exception ex)
         _ when command is "import-linkedin" or "import-messenger" => "Export import failed. Check format, owner identifiers, timestamps, input limits and file access. Incomplete transactions are rolled back. See docs/export-imports.md.",
         PlatformNotSupportedException => "Live connectors require Windows DPAPI credential storage.",
         OperationCanceledException => "Operation cancelled or timed out. Retry to resume from the last completed checkpoint.",
-        Google.GoogleApiException api => $"Gmail API returned HTTP {(int)api.HttpStatusCode}. Check API access or retry later.",
+        Google.GoogleApiException api => MessageHub.Connectors.GmailApiDiagnostics.Describe(api),
         Google.Apis.Auth.OAuth2.Responses.TokenResponseException => "Gmail authorization failed. Reauthorize locally.",
         MailKit.Security.AuthenticationException => "Yahoo authentication failed. Check the address and app password locally.",
         MailKit.Security.SslHandshakeException => "TLS validation failed. Check system time and certificate trust.",
