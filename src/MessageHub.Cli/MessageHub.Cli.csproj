@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../MessageHub.Core/MessageHub.Core.csproj" />
+    <ProjectReference Include="../MessageHub.Storage/MessageHub.Storage.csproj" />
+  </ItemGroup>
+</Project>
