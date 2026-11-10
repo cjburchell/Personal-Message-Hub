@@ -1,0 +1,6 @@
+[
+  {"source":"example","sourceMessageId":"ex-1","conversationId":"conversation-1",
+   "sender":"friend@example.test","recipients":["you@example.test"],
+   "subject":"Coffee","body":"Would you like to meet on Saturday?",
+   "sentAt":"2026-11-08T15:00:00Z","isOutgoing":false,"originalUrl":null}
+]
