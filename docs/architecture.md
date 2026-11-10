@@ -2,7 +2,7 @@
 
 ## Current scope
 
-PMH-001 established Core domain records, SQLite/FTS5 storage and a local CLI. PMH-002 added read-only Gmail/Yahoo integrations. PMH-003 adds persisted reports, bounded local AI analysis and weekly scheduling. Tests use synthetic data and in-memory/fake provider transports. No MCP endpoint, web interface, hosted AI or report-delivery channel exists.
+PMH-001 established Core domain records, SQLite/FTS5 storage and a local CLI. PMH-002 added read-only Gmail/Yahoo integrations. PMH-003 adds persisted reports, bounded local AI analysis and weekly scheduling. Tests use synthetic data and in-memory/fake provider transports. PMH-004 adds a stdio MCP server and password-protected loopback web interface; hosted AI, public endpoints and external report delivery remain out of scope.
 
 Processing flow: read-only provider adapter -> normalization -> message store -> heuristic shortlist -> optional local analysis -> cited report.
 
@@ -48,4 +48,16 @@ Coverage distinguishes imports, never-successful/unrecorded sources, stale times
 6. Authentication/authorization, rate limits and safe request logging must precede any future external MCP/web listener. Do not expose public endpoints as part of these milestones.
 7. Retention, secure deletion, backup/export controls, action-management UI and exact mailbox mirroring remain incomplete. Reports and proposed findings require human review.
 
-PMH-004 (MCP and authenticated local chat) and official LinkedIn/Messenger export adapters remain future milestones.
+Official LinkedIn/Messenger export adapters remain a future milestone.
+
+## PMH-004 local interfaces
+
+Query supplies one read facade for MCP/Web: parameterized literal-token FTS retrieval in a bounded UTC interval, exact interval counts, coverage warnings, bounded message/report reads and optional local Q&A. Retrieved direction/latest-conversation hints help reply interpretation; no query changes messages or actions. Conversation IDs and provider accounts remain source-isolated. Search is keyword-based and non-exhaustive; explicit UI/tool day windows determine dates, not model interpretations of question wording.
+
+Natural-language answers receive at most ten excerpts (120 subject/200 sender/500 body characters, 10000 serialized UTF-8 bytes) and a 1000-character/4000-byte question. LocalOllamaClient shares model/digest/cloud checks and transport limits with reports. Q&A requests at most 900 output tokens, validates up to six cited plain-text statements, limits generation to one per process and has a two-minute overall deadline. Validated results share the existing analysis-cache table under a distinct question/policy/model/evidence/count/minute namespace. UI history stays in page memory and is not sent to the model. No model tools are available. Unavailable/invalid AI yields evidence rather than an uncited answer.
+
+MCP is a separate official-SDK stdio host with six read tools: search_messages, ask_archive, get_message, list_reports, get_report and source_status. Local OS process/stream/filesystem access is its authorization boundary; it has no HTTP listener or shared bearer credential. Tool results are untrusted evidence. Operator-approved clients may transmit received data to their own providers, so connecting them is an explicit operator decision. Provider credentials, arbitrary paths/SQL, sync, report generation and mutations are not exposed. Startup schema initialization and internal answer-cache writes are permitted.
+
+Web is a separate ASP.NET Core host on 127.0.0.1:5080 (port configurable), independent of provider credential stores. A dedicated private directory holds a versioned salted PBKDF2-SHA512 hash; setup uses a hidden prompt. The app refuses startup without a configured hash. Thirty-minute non-sliding HttpOnly/Strict cookies use ephemeral data-protection keys, so restart invalidates sessions. All private routes require authentication; login and POST requests require same-origin JSON and antiforgery tokens. Exact Host/Origin checks, non-loopback rejection, rate/body/read-deadline limits, no-store/CSP headers and safe route/status logs precede archive access. Environment/launch-profile URL declarations do not widen binding. This is not a reverse-proxy/public hosting design.
+
+The static UI renders all archive/model/report data as text, keeps no persistent browser history and clears displayed content on logout/expiry. It cannot modify provider data or run tools. Retention, action management, public/multiuser hosting and account/role administration remain deferred. Reports/caches/messages are still unencrypted SQLite data protected by operator filesystem/disk controls. See [local interface setup](local-interfaces.md) for configuration, MCP client privacy and test/real-model validation limits.

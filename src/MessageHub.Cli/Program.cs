@@ -10,7 +10,8 @@ var store = new SqliteMessageStore(dbPath);
 var command = args.FirstOrDefault()?.ToLowerInvariant();
 if (command is null || command is "help" or "--help")
 {
-    Console.WriteLine("Personal Message Hub (PMH-003)");
+    Console.WriteLine("Personal Message Hub (PMH-004)");
+    Console.WriteLine("Local interfaces: run src/MessageHub.Web or src/MessageHub.Mcp; see docs/local-interfaces.md.");
     Console.WriteLine("Commands: init | import-demo | import-json <file> | search <phrase> | report [days] [--end <ISO>] [--ai --model <local-model>] | reports | report-show <id> | status");
     Console.WriteLine("Worker: worker [--once] [--sync] [--ai --model <local-model>] [--timezone <zone>] [--day Monday] [--hour 8]");
     Console.WriteLine("Evidence: message <id> (prints the full archived message locally)");

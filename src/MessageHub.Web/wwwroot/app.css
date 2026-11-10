@@ -1,0 +1,546 @@
+:root{
+  font-family:Inter,"Segoe UI",sans-serif;
+  color:#21302d;
+  background:#f5f7f6;
+  font-synthesis:none;
+  --green:#236d57;
+  --muted:#6a7872;
+  --line:#dfe6e1}
+  *{
+    box-sizing:border-box}
+    body{
+      margin:0}
+      button,input,textarea,select{
+        font:inherit}
+        button{
+          cursor:pointer}
+          button:disabled{
+            opacity:.55;
+            cursor:wait}
+            button,input,textarea,select{
+              outline-offset:4px}
+              button:focus-visible,a:focus-visible{
+                outline:3px solid #7bb5a2}
+                h1,h2,p{
+                  margin-top:0}
+                  h1{
+                    font-size:36px;
+                    line-height:1.17;
+                    letter-spacing:-1.3px;
+                    font-weight:600;
+                    margin-bottom:12px}
+                    h2{
+                      font-size:23px;
+                      letter-spacing:-.5px;
+                      font-weight:600}
+                      p{
+                        line-height:1.65;
+                        color:var(--muted)}
+                        [hidden]{
+                          display:none!important}
+                          .brand{
+                            display:flex;
+                            align-items:center;
+                            gap:12px;
+                            font-size:16px;
+                            font-weight:600}
+                            .brand-mark{
+                              display:grid;
+                              place-items:center;
+                              width:37px;
+                              height:37px;
+                              background:#dbece3;
+                              color:#21533f;
+                              border-radius:10px;
+                              font-family:Georgia,serif;
+                              font-size:28px;
+                              font-style:italic}
+                              .brand small{
+                                display:block;
+                                font-size:9px;
+                                letter-spacing:1.9px;
+                                font-weight:500;
+                                color:#8caaa0;
+                                margin-top:5px}
+                                .eyebrow{
+                                  font-size:10px;
+                                  letter-spacing:2px;
+                                  font-weight:700;
+                                  color:var(--green);
+                                  display:block;
+                                  margin-bottom:17px}
+                                  .fine{
+                                    font-size:12px;
+                                    line-height:1.6;
+                                    color:var(--muted)}
+                                    .primary,.secondary,.quiet{
+                                      border-radius:8px;
+                                      padding:11px 16px;
+                                      border:1px solid transparent;
+                                      font-size:13px;
+                                      font-weight:600}
+                                      .primary{
+                                        background:var(--green);
+                                        color:#fff;
+                                        display:inline-flex;
+                                        justify-content:center;
+                                        align-items:center;
+                                        gap:20px}
+                                        .primary:hover{
+                                          background:#175240}
+                                          .secondary{
+                                            background:#fff;
+                                            border-color:var(--line);
+                                            color:#3e534b}
+                                            .quiet{
+                                              background:transparent;
+                                              border-color:#476158;
+                                              color:#dce9e3}
+                                              .error{
+                                                color:#a13b39;
+                                                font-size:13px;
+                                                min-height:1em}
+                                                .local-label{
+                                                  font-size:11px;
+                                                  display:flex;
+                                                  align-items:center;
+                                                  gap:8px}
+                                                  .dot{
+                                                    height:6px;
+                                                    width:6px;
+                                                    display:inline-block;
+                                                    border-radius:50%;
+                                                    background:#88c2a1}
+                                                    .login-layout{
+                                                      min-height:100vh;
+                                                      display:grid;
+                                                      grid-template-columns:1fr 1fr}
+                                                      .login-story{
+                                                        background:linear-gradient(150deg,#123e33,#1d5144 60%,#306355);
+                                                        color:white;
+                                                        padding:60px 9vw 48px 6vw;
+                                                        display:flex;
+                                                        flex-direction:column;
+                                                        justify-content:space-between}
+                                                        .login-story h1{
+                                                          font-size:58px;
+                                                          letter-spacing:-2.5px;
+                                                          line-height:1.1}
+                                                          .login-story p{
+                                                            color:#bed2c8;
+                                                            max-width:365px;
+                                                            font-size:16px}
+                                                            .login-story .eyebrow{
+                                                              color:#b7d5c5}
+                                                              .login-panel{
+                                                                display:grid;
+                                                                place-items:center;
+                                                                background:#fafbf9;
+                                                                padding:40px}
+                                                                .login-card{
+                                                                  width:min(360px,100%)}
+                                                                  .login-card h2{
+                                                                    font-size:29px}
+                                                                    .login-card label{
+                                                                      font-size:12px;
+                                                                      font-weight:600;
+                                                                      display:block;
+                                                                      margin-bottom:9px}
+                                                                      .login-card input{
+                                                                        width:100%;
+                                                                        padding:14px;
+                                                                        border:1px solid #cad7ce;
+                                                                        background:#fff;
+                                                                        border-radius:7px;
+                                                                        margin-bottom:17px}
+                                                                        .login-card .primary{
+                                                                          width:100%;
+                                                                          margin-bottom:12px}
+                                                                          .workspace{
+                                                                            display:grid;
+                                                                            grid-template-columns:234px minmax(0,1fr);
+                                                                            min-height:100vh}
+                                                                            .sidebar{
+                                                                              padding:35px 23px 24px;
+                                                                              background:#173e33;
+                                                                              color:#f0f5f1;
+                                                                              position:fixed;
+                                                                              top:0;
+                                                                              left:0;
+                                                                              bottom:0;
+                                                                              width:234px;
+                                                                              display:flex;
+                                                                              flex-direction:column}
+                                                                              .sidebar .brand{
+                                                                                margin-bottom:49px}
+                                                                                .sidebar nav{
+                                                                                  display:grid;
+                                                                                  gap:7px}
+                                                                                  .nav-item{
+                                                                                    border:0;
+                                                                                    padding:13px 15px;
+                                                                                    text-align:left;
+                                                                                    font-size:13px;
+                                                                                    border-radius:8px;
+                                                                                    background:none;
+                                                                                    color:#b4cac0}
+                                                                                    .nav-item:hover,.nav-item.selected{
+                                                                                      color:white;
+                                                                                      background:#2a5345}
+                                                                                      .sidebar-bottom{
+                                                                                        margin-top:auto;
+                                                                                        border-top:1px solid #355a4b;
+                                                                                        padding-top:23px}
+                                                                                        .sidebar-bottom p{
+                                                                                          font-size:11px;
+                                                                                          color:#9db8aa;
+                                                                                          margin:14px 0 17px}
+                                                                                          .sidebar-bottom .quiet{
+                                                                                            width:100%}
+                                                                                            main{
+                                                                                              grid-column:2;
+                                                                                              padding:0 5vw 28px;
+                                                                                              max-width:1500px;
+                                                                                              width:100%;
+                                                                                              margin:auto}
+                                                                                              .topbar{
+                                                                                                display:flex;
+                                                                                                justify-content:space-between;
+                                                                                                align-items:center;
+                                                                                                height:79px;
+                                                                                                border-bottom:1px solid var(--line);
+                                                                                                font-size:11px;
+                                                                                                color:var(--muted)}
+                                                                                                .badge{
+                                                                                                  font-size:9px;
+                                                                                                  letter-spacing:1.4px;
+                                                                                                  color:#6b8075}
+                                                                                                  .page-heading{
+                                                                                                    display:flex;
+                                                                                                    justify-content:space-between;
+                                                                                                    align-items:center;
+                                                                                                    margin:38px 0 26px}
+                                                                                                    .page-heading h1{
+                                                                                                      font-size:31px;
+                                                                                                      margin-bottom:8px}
+                                                                                                      .page-heading p{
+                                                                                                        font-size:13px;
+                                                                                                        margin-bottom:0}
+                                                                                                        .page-heading .eyebrow{
+                                                                                                          margin-bottom:12px}
+                                                                                                          .query-controls{
+                                                                                                            display:flex;
+                                                                                                            align-items:center;
+                                                                                                            gap:20px;
+                                                                                                            flex-wrap:wrap;
+                                                                                                            font-size:12px;
+                                                                                                            padding-bottom:15px;
+                                                                                                            border-bottom:1px solid var(--line)}
+                                                                                                            select{
+                                                                                                              padding:7px;
+                                                                                                              border:1px solid var(--line);
+                                                                                                              border-radius:6px;
+                                                                                                              background:white;
+                                                                                                              margin-left:8px;
+                                                                                                              font-size:12px}
+                                                                                                              .ai-toggle{
+                                                                                                                display:flex;
+                                                                                                                gap:7px;
+                                                                                                                align-items:center}
+                                                                                                                .ai-toggle input{
+                                                                                                                  accent-color:var(--green)}
+                                                                                                                  .conversation{
+                                                                                                                    min-height:320px;
+                                                                                                                    max-height:50vh;
+                                                                                                                    overflow:auto;
+                                                                                                                    padding:25px 0 10px;
+                                                                                                                    scrollbar-width:thin}
+                                                                                                                    .welcome{
+                                                                                                                      max-width:620px;
+                                                                                                                      margin:25px auto 30px;
+                                                                                                                      text-align:center}
+                                                                                                                      .welcome-symbol{
+                                                                                                                        width:40px;
+                                                                                                                        height:40px;
+                                                                                                                        display:grid;
+                                                                                                                        place-items:center;
+                                                                                                                        background:#e2ebe4;
+                                                                                                                        border-radius:12px;
+                                                                                                                        margin:0 auto 18px;
+                                                                                                                        color:var(--green);
+                                                                                                                        font-size:25px}
+                                                                                                                        .welcome h2{
+                                                                                                                          font-size:27px;
+                                                                                                                          margin-bottom:9px}
+                                                                                                                          .welcome p{
+                                                                                                                            font-size:13px}
+                                                                                                                            .suggestions{
+                                                                                                                              display:grid;
+                                                                                                                              grid-template-columns:repeat(3,1fr);
+                                                                                                                              gap:10px;
+                                                                                                                              margin:22px 0}
+                                                                                                                              .suggestions button{
+                                                                                                                                background:#fff;
+                                                                                                                                border:1px solid var(--line);
+                                                                                                                                border-radius:9px;
+                                                                                                                                text-align:left;
+                                                                                                                                padding:15px;
+                                                                                                                                color:#42594e;
+                                                                                                                                line-height:1.6;
+                                                                                                                                font-size:12px;
+                                                                                                                                display:flex;
+                                                                                                                                justify-content:space-between;
+                                                                                                                                gap:12px}
+                                                                                                                                .suggestions button:hover{
+                                                                                                                                  border-color:#8cae9c}
+                                                                                                                                  .composer{
+                                                                                                                                    background:#fff;
+                                                                                                                                    border:1px solid #b6cbbd;
+                                                                                                                                    box-shadow:0 8px 24px #173e3308;
+                                                                                                                                    border-radius:12px;
+                                                                                                                                    padding:16px}
+                                                                                                                                    .composer textarea{
+                                                                                                                                      width:100%;
+                                                                                                                                      border:0;
+                                                                                                                                      resize:vertical;
+                                                                                                                                      min-height:55px;
+                                                                                                                                      max-height:180px;
+                                                                                                                                      font-size:14px;
+                                                                                                                                      background:none;
+                                                                                                                                      color:#253d32;
+                                                                                                                                      padding:0}
+                                                                                                                                      .composer>div{
+                                                                                                                                        display:flex;
+                                                                                                                                        align-items:center;
+                                                                                                                                        justify-content:space-between;
+                                                                                                                                        gap:20px}
+                                                                                                                                        .composer .fine{
+                                                                                                                                          font-size:10px}
+                                                                                                                                          .composer .primary{
+                                                                                                                                            padding:9px 12px;
+                                                                                                                                            white-space:nowrap}
+                                                                                                                                            .turn{
+                                                                                                                                              margin-bottom:20px}
+                                                                                                                                              .question-bubble{
+                                                                                                                                                background:#e8eeea;
+                                                                                                                                                padding:14px 18px;
+                                                                                                                                                margin-left:40px;
+                                                                                                                                                border-radius:11px 11px 2px 11px;
+                                                                                                                                                font-size:14px;
+                                                                                                                                                white-space:pre-wrap}
+                                                                                                                                                .answer-card{
+                                                                                                                                                  border:1px solid var(--line);
+                                                                                                                                                  border-radius:11px;
+                                                                                                                                                  background:#fff;
+                                                                                                                                                  padding:22px;
+                                                                                                                                                  margin-top:12px}
+                                                                                                                                                  .answer-status{
+                                                                                                                                                    font-size:11px;
+                                                                                                                                                    color:var(--green);
+                                                                                                                                                    font-weight:600;
+                                                                                                                                                    margin-bottom:14px}
+                                                                                                                                                    .count-line{
+                                                                                                                                                      font-size:12px;
+                                                                                                                                                      color:var(--muted);
+                                                                                                                                                      padding-bottom:12px;
+                                                                                                                                                      border-bottom:1px solid var(--line)}
+                                                                                                                                                      .answer-text{
+                                                                                                                                                        font-size:14px;
+                                                                                                                                                        line-height:1.7;
+                                                                                                                                                        white-space:pre-wrap;
+                                                                                                                                                        color:#2c4236}
+                                                                                                                                                        .warnings{
+                                                                                                                                                          font-size:11px;
+                                                                                                                                                          color:#8b6c31;
+                                                                                                                                                          background:#fbf8ee;
+                                                                                                                                                          border:1px solid #eee4c7;
+                                                                                                                                                          padding:12px 16px;
+                                                                                                                                                          border-radius:7px;
+                                                                                                                                                          margin-top:15px;
+                                                                                                                                                          line-height:1.65}
+                                                                                                                                                          .warnings summary{
+                                                                                                                                                            cursor:pointer;
+                                                                                                                                                            font-weight:600}
+                                                                                                                                                            .warnings p{
+                                                                                                                                                              font-size:11px;
+                                                                                                                                                              color:inherit;
+                                                                                                                                                              margin:8px 0 0}
+                                                                                                                                                              .evidence-grid{
+                                                                                                                                                                display:grid;
+                                                                                                                                                                gap:9px;
+                                                                                                                                                                margin-top:16px}
+                                                                                                                                                                .evidence{
+                                                                                                                                                                  display:block;
+                                                                                                                                                                  text-align:left;
+                                                                                                                                                                  border:1px solid var(--line);
+                                                                                                                                                                  border-radius:7px;
+                                                                                                                                                                  background:#f9fbf8;
+                                                                                                                                                                  padding:12px;
+                                                                                                                                                                  max-width:100%;
+                                                                                                                                                                  min-width:0}
+                                                                                                                                                                  .evidence strong{
+                                                                                                                                                                    display:block;
+                                                                                                                                                                    font-size:12px;
+                                                                                                                                                                    color:#2c4c3c;
+                                                                                                                                                                    margin:4px 0}
+                                                                                                                                                                    .evidence p{
+                                                                                                                                                                      font-size:12px;
+                                                                                                                                                                      margin:5px 0 0;
+                                                                                                                                                                      overflow-wrap:anywhere;
+                                                                                                                                                                      max-height:80px;
+                                                                                                                                                                      overflow:hidden}
+                                                                                                                                                                      .evidence .fine{
+                                                                                                                                                                        font-size:10px;
+                                                                                                                                                                        overflow-wrap:anywhere}
+                                                                                                                                                                        .citation{
+                                                                                                                                                                          border:1px solid #d4e2d8;
+                                                                                                                                                                          background:#edf4ee;
+                                                                                                                                                                          color:#32614b;
+                                                                                                                                                                          border-radius:4px;
+                                                                                                                                                                          padding:3px 6px;
+                                                                                                                                                                          font-size:10px;
+                                                                                                                                                                          margin:0 5px 5px 0;
+                                                                                                                                                                          max-width:100%;
+                                                                                                                                                                          overflow-wrap:anywhere}
+                                                                                                                                                                          .list-card{
+                                                                                                                                                                            padding:20px;
+                                                                                                                                                                            background:white;
+                                                                                                                                                                            border:1px solid var(--line);
+                                                                                                                                                                            border-radius:10px;
+                                                                                                                                                                            margin-bottom:12px}
+                                                                                                                                                                            .list-card h2{
+                                                                                                                                                                              font-size:17px}
+                                                                                                                                                                              .list-card p{
+                                                                                                                                                                                font-size:12px;
+                                                                                                                                                                                margin:5px 0}
+                                                                                                                                                                                .list-card button{
+                                                                                                                                                                                  margin-top:10px}
+                                                                                                                                                                                  .sr-only{
+                                                                                                                                                                                    position:absolute;
+                                                                                                                                                                                    width:1px;
+                                                                                                                                                                                    height:1px;
+                                                                                                                                                                                    padding:0;
+                                                                                                                                                                                    margin:-1px;
+                                                                                                                                                                                    overflow:hidden;
+                                                                                                                                                                                    clip:rect(0,0,0,0);
+                                                                                                                                                                                    border:0}
+                                                                                                                                                                                    dialog{
+                                                                                                                                                                                      border:1px solid var(--line);
+                                                                                                                                                                                      border-radius:13px;
+                                                                                                                                                                                      padding:25px;
+                                                                                                                                                                                      width:min(850px,92vw);
+                                                                                                                                                                                      max-height:85vh;
+                                                                                                                                                                                      box-shadow:0 25px 90px #132c3340}
+                                                                                                                                                                                      dialog::backdrop{
+                                                                                                                                                                                        background:#132e2880}
+                                                                                                                                                                                        .dialog-heading{
+                                                                                                                                                                                          display:flex;
+                                                                                                                                                                                          justify-content:space-between;
+                                                                                                                                                                                          align-items:center;
+                                                                                                                                                                                          gap:20px}
+                                                                                                                                                                                          .dialog-heading h2{
+                                                                                                                                                                                            margin:0}
+                                                                                                                                                                                            pre{
+                                                                                                                                                                                              font:13px/1.75 "Segoe UI",sans-serif;
+                                                                                                                                                                                              white-space:pre-wrap;
+                                                                                                                                                                                              overflow-wrap:anywhere;
+                                                                                                                                                                                              color:#31483c}
+                                                                                                                                                                                              dialog .fine{
+                                                                                                                                                                                                overflow-wrap:anywhere}
+                                                                                                                                                                                                button:active{
+                                                                                                                                                                                                  transform:translateY(1px)}
+                                                                                                                                                                                                  @media(max-width:900px){
+                                                                                                                                                                                                    main{
+                                                                                                                                                                                                      padding:0 25px 25px}
+                                                                                                                                                                                                      .workspace{
+                                                                                                                                                                                                        grid-template-columns:190px minmax(0,1fr)}
+                                                                                                                                                                                                        .sidebar{
+                                                                                                                                                                                                          width:190px;
+                                                                                                                                                                                                          padding:25px 15px}
+                                                                                                                                                                                                          .brand{
+                                                                                                                                                                                                            font-size:13px}
+                                                                                                                                                                                                            .page-heading{
+                                                                                                                                                                                                              align-items:flex-start;
+                                                                                                                                                                                                              gap:15px}
+                                                                                                                                                                                                              .suggestions{
+                                                                                                                                                                                                                grid-template-columns:1fr}
+                                                                                                                                                                                                                .welcome{
+                                                                                                                                                                                                                  margin-top:0}
+                                                                                                                                                                                                                  .conversation{
+                                                                                                                                                                                                                    max-height:55vh}
+                                                                                                                                                                                                                    .login-story{
+                                                                                                                                                                                                                      padding:40px}
+                                                                                                                                                                                                                      .login-story h1{
+                                                                                                                                                                                                                        font-size:43px}
+                                                                                                                                                                                                                      }
+                                                                                                                                                                                                                      @media(max-width:640px){
+                                                                                                                                                                                                                        .login-layout{
+                                                                                                                                                                                                                          grid-template-columns:1fr}
+                                                                                                                                                                                                                          .login-story{
+                                                                                                                                                                                                                            min-height:260px;
+                                                                                                                                                                                                                            gap:35px;
+                                                                                                                                                                                                                            padding:28px}
+                                                                                                                                                                                                                            .login-story h1{
+                                                                                                                                                                                                                              font-size:35px;
+                                                                                                                                                                                                                              margin-bottom:0}
+                                                                                                                                                                                                                              .login-story p,.login-story .local-label{
+                                                                                                                                                                                                                                display:none}
+                                                                                                                                                                                                                                .login-panel{
+                                                                                                                                                                                                                                  padding:35px 28px}
+                                                                                                                                                                                                                                  .workspace{
+                                                                                                                                                                                                                                    display:block}
+                                                                                                                                                                                                                                    .sidebar{
+                                                                                                                                                                                                                                      position:static;
+                                                                                                                                                                                                                                      width:100%;
+                                                                                                                                                                                                                                      padding:18px 20px}
+                                                                                                                                                                                                                                      .sidebar .brand{
+                                                                                                                                                                                                                                        margin:0 0 18px}
+                                                                                                                                                                                                                                        .sidebar nav{
+                                                                                                                                                                                                                                          display:flex;
+                                                                                                                                                                                                                                          overflow:auto;
+                                                                                                                                                                                                                                          gap:5px}
+                                                                                                                                                                                                                                          .nav-item{
+                                                                                                                                                                                                                                            font-size:11px;
+                                                                                                                                                                                                                                            white-space:nowrap;
+                                                                                                                                                                                                                                            padding:9px 10px}
+                                                                                                                                                                                                                                            .sidebar-bottom{
+                                                                                                                                                                                                                                              border:0;
+                                                                                                                                                                                                                                              padding:0;
+                                                                                                                                                                                                                                              margin:10px 0 0;
+                                                                                                                                                                                                                                              display:flex;
+                                                                                                                                                                                                                                              align-items:center;
+                                                                                                                                                                                                                                              justify-content:space-between}
+                                                                                                                                                                                                                                              .sidebar-bottom p{
+                                                                                                                                                                                                                                                display:none}
+                                                                                                                                                                                                                                                .sidebar-bottom .quiet{
+                                                                                                                                                                                                                                                  width:auto;
+                                                                                                                                                                                                                                                  font-size:10px;
+                                                                                                                                                                                                                                                  padding:6px 10px}
+                                                                                                                                                                                                                                                  main{
+                                                                                                                                                                                                                                                    padding:0 18px 20px}
+                                                                                                                                                                                                                                                    .topbar{
+                                                                                                                                                                                                                                                      height:48px}
+                                                                                                                                                                                                                                                      .page-heading{
+                                                                                                                                                                                                                                                        margin:25px 0 20px}
+                                                                                                                                                                                                                                                        .page-heading h1{
+                                                                                                                                                                                                                                                          font-size:27px}
+                                                                                                                                                                                                                                                          .page-heading .secondary{
+                                                                                                                                                                                                                                                            font-size:10px;
+                                                                                                                                                                                                                                                            padding:9px}
+                                                                                                                                                                                                                                                            .query-controls{
+                                                                                                                                                                                                                                                              gap:10px}
+                                                                                                                                                                                                                                                              .composer>div{
+                                                                                                                                                                                                                                                                align-items:flex-end}
+                                                                                                                                                                                                                                                                .composer .fine{
+                                                                                                                                                                                                                                                                  max-width:160px}
+                                                                                                                                                                                                                                                                  .question-bubble{
+                                                                                                                                                                                                                                                                    margin-left:20px}
+                                                                                                                                                                                                                                                                    .answer-card{
+                                                                                                                                                                                                                                                                      padding:16px}
+                                                                                                                                                                                                                                                                      .badge{
+                                                                                                                                                                                                                                                                        font-size:8px}
+                                                                                                                                                                                                                                                                      }
+                                                                                                                                                                                                                                                                      @media(prefers-reduced-motion:reduce){
+                                                                                                                                                                                                                                                                        *{
+                                                                                                                                                                                                                                                                          scroll-behavior:auto!important}
+                                                                                                                                                                                                                                                                        }

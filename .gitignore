@@ -29,3 +29,6 @@ reports/
 *.report.lock
 client_secret*.json
 credentials*.json
+web-auth/
+*.password.hash
+*.password.hash.*
