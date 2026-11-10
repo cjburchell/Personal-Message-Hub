@@ -1,6 +1,7 @@
 using System.Text.Json;
 using MessageHub.Core;
 using MessageHub.Storage;
+using MessageHub.Cli;
 
 var dbPath = Environment.GetEnvironmentVariable("MESSAGEHUB_DB")
     ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -9,16 +10,25 @@ var store = new SqliteMessageStore(dbPath);
 var command = args.FirstOrDefault()?.ToLowerInvariant();
 if (command is null || command is "help" or "--help")
 {
-    Console.WriteLine("Personal Message Hub (PMH-001)");
+    Console.WriteLine("Personal Message Hub (PMH-002)");
     Console.WriteLine("Commands: init | import-demo | import-json <file> | search <phrase> | report [days] | status");
     Console.WriteLine("Database: " + dbPath);
+    Console.WriteLine("Mail: auth gmail <desktop-client.json> | auth yahoo <address> | sync <gmail|yahoo> | forget <gmail|yahoo>");
+    Console.WriteLine("Live sync requires Windows, disk encryption and restricted filesystem access; messages are unencrypted in SQLite.");
     return;
 }
 try
 {
-    await store.InitializeAsync();
+    using var cancellation = new CancellationTokenSource(TimeSpan.FromMinutes(10));
+    Console.CancelKeyPress += (_, e) => { e.Cancel = true; cancellation.Cancel(); };
+    await store.InitializeAsync(cancellation.Token);
     switch (command)
     {
+        case "auth":
+        case "sync":
+        case "forget":
+            await MailCommands.RunAsync(args, store, cancellation.Token);
+            break;
         case "init":
             Console.WriteLine("Initialized database: " + dbPath);
             break;
@@ -65,10 +75,11 @@ try
             foreach (var source in summary.BySource.OrderBy(x => x.Key))
                 Console.WriteLine($"- {source.Key}: {source.Value}");
             Console.WriteLine("Note: deterministic counts only; AI analysis and action resolution are not implemented.");
+            Console.WriteLine("Counts cover the local archive only. Use status to check source freshness and failed syncs.");
             break;
         case "status":
             var statuses = await store.GetStatusesAsync();
-            if (statuses.Count == 0) Console.WriteLine("No sources synchronized. Live connectors are not configured.");
+            if (statuses.Count == 0) Console.WriteLine("No sources synchronized. Authorization may exist; no sync has been recorded.");
             foreach (var s in statuses)
                 Console.WriteLine($"{s.Source}: {s.LastSuccessfulSync?.ToString("u") ?? "never"} {s.Error}");
             break;
@@ -76,9 +87,20 @@ try
             throw new ArgumentException($"Unknown command: {command}");
     }
 }
-catch (Exception ex) when (ex is ArgumentException or IOException or JsonException or Microsoft.Data.Sqlite.SqliteException)
+catch (Exception ex)
 {
     // Do not echo JSON or database values: they may contain private message content.
-    Console.Error.WriteLine("Command failed. Check arguments, JSON message fields, and database/file access. Use --help for usage.");
+    var reason = ex switch
+    {
+        PlatformNotSupportedException => "Live connectors require Windows DPAPI credential storage.",
+        OperationCanceledException => "Operation cancelled or timed out. Retry to resume from the last completed checkpoint.",
+        Google.GoogleApiException api => $"Gmail API returned HTTP {(int)api.HttpStatusCode}. Check API access or retry later.",
+        Google.Apis.Auth.OAuth2.Responses.TokenResponseException => "Gmail authorization failed. Reauthorize locally.",
+        MailKit.Security.AuthenticationException => "Yahoo authentication failed. Check the address and app password locally.",
+        MailKit.Security.SslHandshakeException => "TLS validation failed. Check system time and certificate trust.",
+        System.Security.Cryptography.CryptographicException => "The credential store could not be decrypted. Reauthorize using this Windows account.",
+        _ => "Check usage, input files, local authorization, network access and database permissions; another sync may be running."
+    };
+    Console.Error.WriteLine("Command failed. " + reason + " See docs/mail-setup.md; use --help for usage.");
     Environment.ExitCode = 1;
 }

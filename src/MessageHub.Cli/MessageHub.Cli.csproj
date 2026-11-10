@@ -3,5 +3,6 @@
   <ItemGroup>
     <ProjectReference Include="../MessageHub.Core/MessageHub.Core.csproj" />
     <ProjectReference Include="../MessageHub.Storage/MessageHub.Storage.csproj" />
+    <ProjectReference Include="..\MessageHub.Connectors\MessageHub.Connectors.csproj" />
   </ItemGroup>
 </Project>

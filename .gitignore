@@ -23,3 +23,8 @@ reports/private/
 *.bak
 *.pfx
 *.pem
+*.secret
+*.secret.*
+*.sync.lock
+client_secret*.json
+credentials*.json
