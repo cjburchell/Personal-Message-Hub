@@ -32,3 +32,6 @@ credentials*.json
 web-auth/
 *.password.hash
 *.password.hash.*
+*.zip
+messages.csv
+message_*.json

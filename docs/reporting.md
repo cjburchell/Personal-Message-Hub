@@ -83,7 +83,7 @@ Successful validated analysis is cached by selection/prompt-policy version, loca
 
 ## Coverage and remaining limits
 
-Reports distinguish unrecorded/never-successful sources, imports, synthetic demo data, failed syncs and syncs more than 24 hours older than the report end. They show successful-sync start timestamps and explain when synchronization occurred after a historical window. These timestamps do not prove gap-free historical coverage. LinkedIn/Messenger adapters remain unimplemented, even if normalized imported records carry those source names. Empty local counts are never presented as proof of empty provider inboxes.
+Reports distinguish unrecorded/never-successful sources, imports, synthetic demo data, failed syncs and syncs more than 24 hours older than the report end. They show successful-sync start timestamps and explain when synchronization occurred after a historical window. These timestamps do not prove gap-free historical coverage. LinkedIn/Messenger official export imports are operator-selected snapshots, with import provenance and no live freshness claim; normalized JSON imports alone do not establish official provenance. Empty local counts are never presented as proof of empty provider inboxes.
 
 Persistence of a report and its deterministic proposals is transactional. A failed write saves neither. A successful AI cache entry may survive a later report-write failure so retrying can avoid another generation. The worker retries failed report construction at the next poll; it has no distributed job system or external delivery. Reports, caches and proposals are retained until an operator-managed retention feature is implemented. MCP and authenticated local web/chat are documented in [PMH-004 interface setup](local-interfaces.md).
 

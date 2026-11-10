@@ -108,11 +108,18 @@ public sealed class ArchiveQueryService(SqliteMessageStore store, IQuestionAnswe
         {
             var status = statuses.FirstOrDefault(x => x.Source == source);
             if (source == "demo") { yield return "demo: synthetic data only."; continue; }
+            if (status?.LastExportImport is { } import)
+            {
+                yield return $"{source}: export snapshot imported {import.ImportedAt:u}; coverage is unknown and import time is not provider freshness.";
+                if (import.Summary.SkippedRecords > 0 || import.Summary.AttachmentOnlyMessages > 0)
+                    yield return $"{source}: {import.Summary.SkippedRecords} skipped export records; {import.Summary.AttachmentOnlyMessages} attachment-only placeholders. Media was not imported.";
+                continue;
+            }
             if (status?.LastSuccessfulSync is not { } success) yield return source + ": never successfully synchronized; coverage is unknown.";
             else if (success < end.AddHours(-24)) yield return source + ": last successful sync is more than 24 hours old.";
             if (status?.Error is not null) yield return source + ": latest sync failed; coverage may be incomplete.";
         }
-        yield return "LinkedIn/Messenger adapters are not implemented. Empty local counts do not establish empty provider inboxes.";
+        yield return "LinkedIn/Messenger use selected export snapshots; attachment content is not indexed. Empty local counts do not establish empty provider inboxes.";
     }
     public void Dispose() => _generation.Dispose();
 }

@@ -28,6 +28,14 @@ public static class ReportRenderer
             var status = statuses.FirstOrDefault(x => x.Source == source);
             var label = Text(source);
             if (source == "demo") { output.AppendLine("- demo: synthetic imports only; no live-provider coverage."); continue; }
+            if (status?.LastExportImport is { } import)
+            {
+                output.AppendLine($"- {label}: export snapshot imported {import.ImportedAt:u}; {import.Summary.MessageCount} message rows processed.");
+                output.AppendLine($"  WARNING: snapshot coverage is unknown; newest accepted message: {import.Summary.LatestMessage?.ToString("u") ?? "none"}. Import time is not provider freshness.");
+                if (import.Summary.SkippedRecords > 0 || import.Summary.AttachmentOnlyMessages > 0)
+                    output.AppendLine($"  Export omissions: {import.Summary.SkippedRecords} skipped records; {import.Summary.AttachmentOnlyMessages} attachment-only placeholders. Media was not imported.");
+                continue;
+            }
             if (status?.LastSuccessfulSync is not { } success)
                 output.AppendLine($"- WARNING: {label}: never successfully synchronized; coverage is unknown.");
             else
@@ -38,7 +46,7 @@ public static class ReportRenderer
             }
             if (status?.Error is not null) output.AppendLine($"- WARNING: {label}: latest sync failed; archived data may be incomplete.");
         }
-        output.AppendLine("LinkedIn/Messenger live/export adapters are not implemented; normalized imports do not establish provider freshness.");
+        output.AppendLine("LinkedIn/Messenger use operator-selected export snapshots without attachment content; missing or imported data does not establish current provider freshness.");
         if (messages.Count == 0) output.AppendLine("No archived messages in this interval. This does not prove there were no messages at the providers.");
         output.AppendLine().AppendLine("## Proposed signals to review");
         output.AppendLine("Heuristic candidates, not confirmed obligations. Reply status is inferred from the last archived message in each conversation within this interval.");

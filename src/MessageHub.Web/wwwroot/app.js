@@ -70,12 +70,16 @@ async function setView(next) {
         card.append(node('h2','Message report'),node('p',date(item.start)+' — '+date(item.end)),node('p',item.id,'fine'));
         const button=node('button','Open saved report','secondary'); button.addEventListener('click',()=>showReport(item.id)); card.append(button);
       } else {
-        card.append(node('h2',item.source),node('p',item.lastSuccessfulSync?'Last successful run: '+date(item.lastSuccessfulSync):'Never successfully synchronized'));
+        card.append(node('h2',item.source));
+        if(item.lastExportImport) {
+          const snapshot=item.lastExportImport;
+          card.append(node('p','Export snapshot imported: '+date(snapshot.importedAt)),node('p',`${snapshot.summary.messageCount} message rows processed. Newest accepted message: ${snapshot.summary.latestMessage?date(snapshot.summary.latestMessage):'none'}.`),node('p','Snapshot coverage is unknown. Import time does not establish current provider freshness.','fine'));
+        } else card.append(node('p',item.lastSuccessfulSync?'Last successful run: '+date(item.lastSuccessfulSync):'Never successfully synchronized'));
         if(item.error) card.append(node('p',item.error,'error'));
       }
       list.append(card);
     }
-    if(view==='sources') list.append(node('p','Timestamps do not prove complete historical coverage. Imports and missing sources do not establish an empty inbox. LinkedIn/Messenger adapters are not implemented.','fine'));
+    if(view==='sources') list.append(node('p','Timestamps do not prove complete historical coverage. LinkedIn/Messenger imports are snapshots; missing or imported data does not establish an empty inbox.','fine'));
   } catch(error) { $('app-error').textContent=error.message; }
 }
 document.querySelectorAll('[data-view]').forEach(button=>button.addEventListener('click',()=>setView(button.dataset.view)));

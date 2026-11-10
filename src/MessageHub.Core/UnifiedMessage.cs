@@ -21,7 +21,7 @@ public sealed record MessageHit(
     DateTimeOffset SentAt,
     string? OriginalUrl);
 
-public sealed record SourceStatus(string Source, DateTimeOffset? LastSuccessfulSync, string? Error);
+public sealed record SourceStatus(string Source, DateTimeOffset? LastSuccessfulSync, string? Error, ExportImportInfo? LastExportImport = null);
 
 public sealed record ReportSummary(int MessageCount, int IncomingCount, int OutgoingCount,
     IReadOnlyDictionary<string, int> BySource);

@@ -10,7 +10,9 @@ var store = new SqliteMessageStore(dbPath);
 var command = args.FirstOrDefault()?.ToLowerInvariant();
 if (command is null || command is "help" or "--help")
 {
-    Console.WriteLine("Personal Message Hub (PMH-004)");
+    Console.WriteLine("Personal Message Hub (PMH-005)");
+    Console.WriteLine("Exports: import-linkedin <input> --account <label> --self <profile-url-or-name> [--self <alias>] [--timezone <zone>] [--dry-run]");
+    Console.WriteLine("         import-messenger <input> --account <label> --self <display-name> [--self <alias>] [--repair-encoding] [--dry-run] | imports");
     Console.WriteLine("Local interfaces: run src/MessageHub.Web or src/MessageHub.Mcp; see docs/local-interfaces.md.");
     Console.WriteLine("Commands: init | import-demo | import-json <file> | search <phrase> | report [days] [--end <ISO>] [--ai --model <local-model>] | reports | report-show <id> | status");
     Console.WriteLine("Worker: worker [--once] [--sync] [--ai --model <local-model>] [--timezone <zone>] [--day Monday] [--hour 8]");
@@ -26,9 +28,21 @@ try
     using var cancellation = new CancellationTokenSource();
     if (command != "worker") cancellation.CancelAfter(TimeSpan.FromMinutes(10));
     Console.CancelKeyPress += (_, e) => { e.Cancel = true; cancellation.Cancel(); };
-    await store.InitializeAsync(cancellation.Token);
+    if (command is not ("import-linkedin" or "import-messenger"))
+        await store.InitializeAsync(cancellation.Token);
     switch (command)
     {
+        case "import-linkedin":
+        case "import-messenger":
+            await ExportCommands.RunAsync(args, store, cancellation.Token);
+            break;
+        case "imports":
+            if (args.Length != 1) throw new ArgumentException("Usage: imports");
+            var imports = await store.GetLatestExportImportsAsync(cancellation.Token);
+            if (imports.Count == 0) Console.WriteLine("No official export imports recorded.");
+            foreach (var import in imports)
+                Console.WriteLine($"{import.Source}: imported {import.ImportedAt:u}; {import.Summary.MessageCount} message rows; newest accepted message {import.Summary.LatestMessage?.ToString("u") ?? "none"}. Snapshot coverage unknown.");
+            break;
         case "auth":
         case "sync":
         case "forget":
@@ -91,7 +105,9 @@ try
             var statuses = await store.GetStatusesAsync();
             if (statuses.Count == 0) Console.WriteLine("No sources synchronized. Authorization may exist; no sync has been recorded.");
             foreach (var s in statuses)
-                Console.WriteLine($"{s.Source}: {s.LastSuccessfulSync?.ToString("u") ?? "never"} {s.Error}");
+                Console.WriteLine(s.LastExportImport is { } export
+                    ? $"{s.Source}: export snapshot imported {export.ImportedAt:u}; live sync not established."
+                    : $"{s.Source}: {s.LastSuccessfulSync?.ToString("u") ?? "never"} {s.Error}");
             break;
         default:
             throw new ArgumentException($"Unknown command: {command}");
@@ -103,6 +119,7 @@ catch (Exception ex)
     // Do not echo JSON or database values: they may contain private message content.
     var reason = ex switch
     {
+        _ when command is "import-linkedin" or "import-messenger" => "Export import failed. Check format, owner identifiers, timestamps, input limits and file access. Incomplete transactions are rolled back. See docs/export-imports.md.",
         PlatformNotSupportedException => "Live connectors require Windows DPAPI credential storage.",
         OperationCanceledException => "Operation cancelled or timed out. Retry to resume from the last completed checkpoint.",
         Google.GoogleApiException api => $"Gmail API returned HTTP {(int)api.HttpStatusCode}. Check API access or retry later.",
