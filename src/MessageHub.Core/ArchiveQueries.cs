@@ -14,5 +14,5 @@ public sealed record ArchiveAnswer(DateTimeOffset Start, DateTimeOffset End, Rep
     IReadOnlyList<string> Warnings, IReadOnlyList<ArchiveEvidence> Evidence, IReadOnlyList<AnswerStatement> Statements,
     string AnalysisStatus, bool Cached, int InputTokens, int OutputTokens);
 public sealed record ArchiveMessage(string Id, string Source, string Sender, string? Subject, string Body,
-    DateTimeOffset SentAt, bool Truncated);
+    DateTimeOffset SentAt, bool Truncated, EmailMetadata? Email = null);
 public sealed record ArchiveReport(string Id, DateTimeOffset Start, DateTimeOffset End, string Markdown, bool Truncated);

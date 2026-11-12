@@ -28,6 +28,12 @@ public static class ReportRenderer
             var status = statuses.FirstOrDefault(x => x.Source == source);
             var label = Text(source);
             if (source == "demo") { output.AppendLine("- demo: synthetic imports only; no live-provider coverage."); continue; }
+            if (status?.LastLocalImport is { } local)
+            {
+                output.AppendLine($"- {label}: local Thunderbird import attempted {local.ImportedAt:u}; {local.Issues} issues; selected-file scan complete: {local.Complete}.");
+                output.AppendLine("  WARNING: local snapshot coverage is unknown, including undownloaded IMAP bodies. Import time is not provider freshness.");
+                continue;
+            }
             if (status?.LastExportImport is { } import)
             {
                 output.AppendLine($"- {label}: export snapshot imported {import.ImportedAt:u}; {import.Summary.MessageCount} message rows processed.");

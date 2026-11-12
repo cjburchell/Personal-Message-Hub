@@ -89,7 +89,8 @@ public sealed class ArchiveQueryService(SqliteMessageStore store, IQuestionAnswe
     public async Task<ArchiveMessage?> GetMessageAsync(string id, CancellationToken ct = default)
     {
         ValidateId(id);
-        return await store.GetBoundedMessageAsync(id, ct);
+        var message = await store.GetBoundedMessageAsync(id, ct);
+        return message is null ? null : message with { Email = await store.GetEmailMetadataAsync(id, ct) };
     }
     public async Task<ArchiveReport?> GetReportAsync(string id, CancellationToken ct = default)
     {
@@ -108,6 +109,11 @@ public sealed class ArchiveQueryService(SqliteMessageStore store, IQuestionAnswe
         {
             var status = statuses.FirstOrDefault(x => x.Source == source);
             if (source == "demo") { yield return "demo: synthetic data only."; continue; }
+            if (status?.LastLocalImport is { } local)
+            {
+                yield return $"{source}: local Thunderbird import attempted {local.ImportedAt:u}; {local.Issues} issues; selected-file scan complete: {local.Complete}. Coverage is a local snapshot, not provider freshness.";
+                continue;
+            }
             if (status?.LastExportImport is { } import)
             {
                 yield return $"{source}: export snapshot imported {import.ImportedAt:u}; coverage is unknown and import time is not provider freshness.";

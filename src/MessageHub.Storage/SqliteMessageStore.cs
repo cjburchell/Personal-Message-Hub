@@ -138,6 +138,7 @@ public sealed partial class SqliteMessageStore(string databasePath)
             CREATE INDEX IF NOT EXISTS idx_export_import_source ON export_imports(source,imported_at);
             """;
         await cmd.ExecuteNonQueryAsync(ct);
+        await MigrateEmailArchiveAsync(connection, ct);
     }
 
     public async Task<bool> UpsertAsync(UnifiedMessage message, CancellationToken ct = default)
@@ -278,6 +279,12 @@ public sealed partial class SqliteMessageStore(string databasePath)
             var index = result.FindIndex(x => x.Source == import.Source);
             if (index >= 0) result[index] = result[index] with { LastExportImport = import };
             else result.Add(new(import.Source, null, null, import));
+        }
+        foreach (var import in await GetEmailImportStatusesAsync(ct))
+        {
+            var index = result.FindIndex(x => x.Source == import.Source);
+            if (index >= 0) result[index] = result[index] with { LastLocalImport = import };
+            else result.Add(new(import.Source, null, null, LastLocalImport: import));
         }
         return result.OrderBy(x => x.Source, StringComparer.Ordinal).ToArray();
     }

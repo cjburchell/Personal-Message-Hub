@@ -35,3 +35,7 @@ web-auth/
 *.zip
 messages.csv
 message_*.json
+mail-archives/
+*.eml
+*.mbox
+*.msf

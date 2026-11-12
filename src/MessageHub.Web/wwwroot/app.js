@@ -71,7 +71,10 @@ async function setView(next) {
         const button=node('button','Open saved report','secondary'); button.addEventListener('click',()=>showReport(item.id)); card.append(button);
       } else {
         card.append(node('h2',item.source));
-        if(item.lastExportImport) {
+        if(item.lastLocalImport) {
+          const local=item.lastLocalImport;
+          card.append(node('p','Local Thunderbird import attempted: '+date(local.importedAt)),node('p',`${local.issues} issues. Selected-file scan complete: ${local.complete}.`),node('p','Local snapshot only. Undownloaded messages may be absent; import time is not provider freshness.','fine'));
+        } else if(item.lastExportImport) {
           const snapshot=item.lastExportImport;
           card.append(node('p','Export snapshot imported: '+date(snapshot.importedAt)),node('p',`${snapshot.summary.messageCount} message rows processed. Newest accepted message: ${snapshot.summary.latestMessage?date(snapshot.summary.latestMessage):'none'}.`),node('p','Snapshot coverage is unknown. Import time does not establish current provider freshness.','fine'));
         } else card.append(node('p',item.lastSuccessfulSync?'Last successful run: '+date(item.lastSuccessfulSync):'Never successfully synchronized'));

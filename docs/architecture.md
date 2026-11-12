@@ -2,6 +2,8 @@
 
 ## Current scope
 
+The approved Thunderbird extension adds local mbox/Maildir/EML ingestion within this solution. Core defines email/local-reader contracts; Connectors/Thunderbird implements read-only discovery and MimeKit parsing. Storage owns versioned transactional email schema additions, originals/provenance, threads/contacts and LocalEmailImportService through Core interfaces. CLI owns discovery/import/original export; Query and the existing MCP host add bounded historical email/thread/contact retrieval. No AI/provider call, second solution or external endpoint is added. See [Thunderbird details](thunderbird.md).
+
 PMH-001 established Core domain records, SQLite/FTS5 storage and a local CLI. PMH-002 added read-only Gmail/Yahoo integrations. PMH-003 adds persisted reports, bounded local AI analysis and weekly scheduling. Tests use synthetic data and in-memory/fake provider transports. PMH-004 adds a stdio MCP server and password-protected loopback web interface; hosted AI, public endpoints and external report delivery remain out of scope.
 
 Processing flow: read-only provider adapter -> normalization -> message store -> heuristic shortlist -> optional local analysis -> cited report.
@@ -39,6 +41,8 @@ Local Ollama is optional and must use a literal loopback endpoint. PMH disables 
 Coverage distinguishes imports, never-successful/unrecorded sources, stale timestamps, synthetic data and failed syncs. Empty archives never imply empty inboxes. Historical report coverage cannot be proven from a current sync timestamp. The 24-hour staleness comparison is relative to report end. See [reporting setup and limitations](reporting.md).
 
 ## Security requirements
+
+Thunderbird raw originals include attachment bytes and require private disk/backup protection. Canonical messages retain separate folder/source occurrences and raw variants; forwards remain separate linked evidence. Version 1 in pmh_schema_migrations adds email_* tables atomically. Each message/FTS/metadata/original/checkpoint batch commits together; interruption preserves earlier batches for replay. Local scan status never advances provider checkpoints. The three new MCP tools (search_email, get_thread, get_contact_history) bring the total to nine, with old interfaces preserved and no raw/file-open tools.
 
 1. Gmail scopes remain read-only. Yahoo uses TLS/app authentication, not normal account passwords. Credentials stay in current-user Windows DPAPI; other operating systems have no plaintext fallback.
 2. SQLite bodies, reports, caches and proposals are unencrypted. Operators must use disk encryption, restrictive filesystem permissions and private backup locations before real ingestion. The app does not attest encryption or ACL state.

@@ -1,6 +1,8 @@
-# Personal Message Hub - PMH-005
+# Personal Message Hub
 
 Self-hosted, read-only .NET 10 foundation for a personal communication archive. The application supports read-only Gmail OAuth/API and Yahoo TLS IMAP synchronization, normalized JSON/demo imports, SQLite FTS5 search and deterministic count reports. PMH-003 adds persisted reports, a weekly worker and optional bounded local Ollama analysis. PMH-004 adds authenticated loopback web chat and a read-only stdio MCP server. PMH-005 adds atomic LinkedIn CSV and Messenger JSON export imports.
+
+The Thunderbird extension imports local Yahoo email from mbox, Thunderbird Maildir or EML without provider authentication or AI costs. It preserves raw originals in SQLite, indexes MIME text, retains folders/contacts/attachment metadata, resumes interrupted imports and adds historical email/thread/contact MCP queries. Start with [Thunderbird configuration and security](docs/thunderbird.md); keep Thunderbird closed or use a private snapshot. No personal archive is read automatically.
 
 ## Windows development
 
@@ -58,7 +60,8 @@ Gmail authorization temporarily starts a loopback OAuth callback. The optional p
 2. PMH-002: Gmail/Yahoo read-only integrations, incremental sync and credential management (implemented; synthetic validation).
 3. PMH-003: weekly worker and selective local AI reports with citations/freshness warnings (implemented; real-model validation pending).
 4. PMH-004: read-only stdio MCP server and authenticated local chat (implemented).
-5. PMH-005: LinkedIn/Messenger export adapters (current; synthetic layout validation, real-export compatibility pending).
+5. PMH-005: LinkedIn/Messenger export adapters (implemented; real-export compatibility pending).
+6. Thunderbird knowledge base: local email import, original preservation, metadata and read-only historical/thread/contact queries (synthetic validation; private archive validation pending).
 
 See [architecture](docs/architecture.md) and [development conventions](AGENTS.md).
 
@@ -87,7 +90,7 @@ dotnet run --project src/MessageHub.Web
 dotnet publish src/MessageHub.Mcp -c Release -o "$env:LOCALAPPDATA\PersonalMessageHub\mcp"
 ```
 
-Both interfaces use MESSAGEHUB_DB and return bounded evidence with source-coverage warnings. Optional Q&A uses a configured local Ollama model only when explicitly requested. The web app uses password/session authentication, CSRF checks and loopback/Origin/Host restrictions. The MCP process exposes six read tools and no network listener. Read [interface setup and privacy limits](docs/local-interfaces.md) before connecting a client: a client receiving private tool results may forward them to its own model provider. No external client, model or system task is configured automatically.
+Both interfaces use MESSAGEHUB_DB and return bounded evidence with source-coverage warnings. Optional Q&A uses a configured local Ollama model only when explicitly requested. The web app uses password/session authentication, CSRF checks and loopback/Origin/Host restrictions. The MCP process exposes nine read tools and no network listener. Read [interface setup and privacy limits](docs/local-interfaces.md) before connecting a client: a client receiving private tool results may forward them to its own model provider. No external client, model or system task is configured automatically.
 
 ## LinkedIn and Messenger exports
 
