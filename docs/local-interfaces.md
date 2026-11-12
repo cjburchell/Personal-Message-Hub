@@ -88,6 +88,11 @@ Use the published DLL or an already-built process command; build output from `do
 | `list_reports()` | Latest fifty saved report headers; no report generation. |
 | `get_report(id)` | Saved Markdown as untrusted text, capped at 20,000 characters. |
 | `source_status()` | Recorded sync timestamps and fixed safe errors; missing records do not establish coverage. |
+| `search_email(query?, source?, folder?, contact?, start?, end?, offset=0, limit=20)` | All-history Thunderbird email search, literal phrase and explicit filters; bounded paginated excerpts, no AI. |
+| `get_thread(messageId, offset=0, limit=20)` | Header-based Thunderbird thread using an archived message ID. |
+| `get_contact_history(address, source?, start?, end?, offset=0, limit=20)` | Thunderbird From/To/Cc/Bcc history for an exact case-folded address. |
+
+There are nine tools after the Thunderbird extension. Existing tool signatures/day windows remain compatible. get_message additionally returns bounded email metadata, forward relationships and opaque source-reference IDs, never raw originals or source filesystem paths. New email pages support all history with optional half-open UTC date intervals, at most 20 results/24,000 serialized UTF-8 bytes and an offset cursor. Results are not a frozen snapshot across imports. See [Thunderbird setup, limits and preservation](thunderbird.md).
 
 All tools carry read-only/non-destructive annotations. IDs are exact strings, not paths; no arbitrary SQL, filesystem, provider or mutation tools exist. The server never initiates OAuth or reads provider credential stores. Read-only refers to messages/providers/configuration: startup initializes the local schema if needed, and opted-in validated AI answers can populate the internal analysis cache.
 

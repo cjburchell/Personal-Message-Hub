@@ -6,6 +6,47 @@ namespace MessageHub.Tests;
 public sealed class CliTests
 {
     [Fact]
+    public async Task ThunderbirdCommandsDiscoverDryRunImportReplayAndExportOriginalPrivately()
+    {
+        var root = new DirectoryInfo(AppContext.BaseDirectory);
+        while (root is not null && !File.Exists(Path.Combine(root.FullName, "PersonalMessageHub.sln"))) root = root.Parent;
+        Assert.NotNull(root);
+        var configuration = new DirectoryInfo(AppContext.BaseDirectory).Parent!.Name;
+        var cli = Path.Combine(root.FullName, "src", "MessageHub.Cli", "bin", configuration, "net10.0", "MessageHub.Cli.dll");
+        var temporary = Path.Combine(Path.GetTempPath(), "pmh-thunderbird-cli-" + Guid.NewGuid().ToString("N")); Directory.CreateDirectory(temporary);
+        var database = Path.Combine(temporary, "db", "archive.db"); var input = Path.Combine(temporary, "synthetic.eml");
+        var bytes = ThunderbirdTests.Message(body: "synthetic-private-cli-body"); await File.WriteAllBytesAsync(input, bytes);
+        try
+        {
+            async Task<(int Code, string Output)> Run(params string[] arguments)
+            {
+                var info = new ProcessStartInfo("dotnet") { RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false };
+                info.ArgumentList.Add(cli); foreach (var argument in arguments) info.ArgumentList.Add(argument);
+                info.Environment["MESSAGEHUB_DB"] = database;
+                using var process = Process.Start(info)!; var stdout = process.StandardOutput.ReadToEndAsync(); var stderr = process.StandardError.ReadToEndAsync();
+                using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+                try { await process.WaitForExitAsync(timeout.Token); } catch { process.Kill(entireProcessTree: true); throw; }
+                return (process.ExitCode, await stdout + await stderr);
+            }
+            var discovery = await Run("discover-thunderbird", input); Assert.Equal(0, discovery.Code); Assert.False(Directory.Exists(Path.GetDirectoryName(database)));
+            var dry = await Run("import-thunderbird", input, "--account", "synthetic", "--self", "owner@example.test", "--dry-run");
+            Assert.Equal(0, dry.Code); Assert.False(Directory.Exists(Path.GetDirectoryName(database))); Assert.DoesNotContain("synthetic-private-cli-body", dry.Output);
+            var imported = await Run("import-thunderbird", input, "--account", "synthetic", "--self", "owner@example.test");
+            Assert.Equal(0, imported.Code); Assert.DoesNotContain("synthetic-private-cli-body", imported.Output);
+            Assert.Equal(0, (await Run("import-thunderbird", input, "--account", "synthetic", "--self", "owner@example.test")).Code);
+            var store = new MessageHub.Storage.SqliteMessageStore(database);
+            var hit = Assert.Single((await new MessageHub.Query.EmailArchiveQueries(store).SearchAsync()).Messages);
+            var reference = Assert.Single((await store.GetEmailMetadataAsync(hit.Id))!.Sources).Id;
+            var output = Path.Combine(temporary, "preserved.eml"); Assert.Equal(0, (await Run("email-original", reference, output)).Code);
+            Assert.Equal(bytes, await File.ReadAllBytesAsync(output)); Assert.Equal(1, (await Run("email-original", reference, output)).Code);
+            await File.WriteAllTextAsync(input, "synthetic-private-invalid-message");
+            var failed = await Run("import-thunderbird", input, "--account", "synthetic", "--self", "owner@example.test");
+            Assert.Equal(1, failed.Code); Assert.DoesNotContain("synthetic-private-invalid-message", failed.Output);
+        }
+        finally { Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools(); Directory.Delete(temporary, true); }
+    }
+
+    [Fact]
     public async Task SyntheticWorkflowAndInvalidInputExitCodes()
     {
         var root = new DirectoryInfo(AppContext.BaseDirectory);

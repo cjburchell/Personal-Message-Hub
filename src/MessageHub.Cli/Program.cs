@@ -11,6 +11,8 @@ var command = args.FirstOrDefault()?.ToLowerInvariant();
 if (command is null || command is "help" or "--help")
 {
     Console.WriteLine("Personal Message Hub (PMH-005)");
+    Console.WriteLine("Thunderbird: discover-thunderbird <path> [--folder <name>] | import-thunderbird <path> --account <label> --self <email> [--self <alias>] [--folder <name>] [--dry-run]");
+    Console.WriteLine("Originals: email-original <email-ref-id> <new-output-file> (private local export only)");
     Console.WriteLine("Exports: import-linkedin <input> --account <label> --self <profile-url-or-name> [--self <alias>] [--timezone <zone>] [--dry-run]");
     Console.WriteLine("         import-messenger <input> --account <label> --self <display-name> [--self <alias>] [--repair-encoding] [--dry-run] | imports");
     Console.WriteLine("Local interfaces: run src/MessageHub.Web or src/MessageHub.Mcp; see docs/local-interfaces.md.");
@@ -26,12 +28,17 @@ try
 {
     args[0] = command;
     using var cancellation = new CancellationTokenSource();
-    if (command != "worker") cancellation.CancelAfter(TimeSpan.FromMinutes(10));
+    if (command is not ("worker" or "import-thunderbird")) cancellation.CancelAfter(TimeSpan.FromMinutes(10));
     Console.CancelKeyPress += (_, e) => { e.Cancel = true; cancellation.Cancel(); };
-    if (command is not ("import-linkedin" or "import-messenger"))
+    if (command is not ("import-linkedin" or "import-messenger" or "discover-thunderbird" or "import-thunderbird" or "email-original"))
         await store.InitializeAsync(cancellation.Token);
     switch (command)
     {
+        case "discover-thunderbird":
+        case "import-thunderbird":
+        case "email-original":
+            await ThunderbirdCommands.RunAsync(args, store, cancellation.Token);
+            break;
         case "import-linkedin":
         case "import-messenger":
             await ExportCommands.RunAsync(args, store, cancellation.Token);
@@ -105,7 +112,9 @@ try
             var statuses = await store.GetStatusesAsync();
             if (statuses.Count == 0) Console.WriteLine("No sources synchronized. Authorization may exist; no sync has been recorded.");
             foreach (var s in statuses)
-                Console.WriteLine(s.LastExportImport is { } export
+                Console.WriteLine(s.LastLocalImport is { } local
+                    ? $"{s.Source}: local import attempted {local.ImportedAt:u}; issues {local.Issues}; selected-file scan complete {local.Complete}. No live freshness claim."
+                    : s.LastExportImport is { } export
                     ? $"{s.Source}: export snapshot imported {export.ImportedAt:u}; live sync not established."
                     : $"{s.Source}: {s.LastSuccessfulSync?.ToString("u") ?? "never"} {s.Error}");
             break;
@@ -119,6 +128,7 @@ catch (Exception ex)
     // Do not echo JSON or database values: they may contain private message content.
     var reason = ex switch
     {
+        _ when command is "discover-thunderbird" or "import-thunderbird" or "email-original" => "Local email operation failed. Check input selection, closed/readable source files, limits, output-file access and database permissions. Previously committed batches are retained for safe replay. See docs/thunderbird.md.",
         _ when command is "import-linkedin" or "import-messenger" => "Export import failed. Check format, owner identifiers, timestamps, input limits and file access. Incomplete transactions are rolled back. See docs/export-imports.md.",
         PlatformNotSupportedException => "Live connectors require Windows DPAPI credential storage.",
         OperationCanceledException => "Operation cancelled or timed out. Retry to resume from the last completed checkpoint.",
